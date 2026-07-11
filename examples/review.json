@@ -1,0 +1,477 @@
+{
+  "title": "Composer @mentions, ask_user / QuestionHub, and experimental surface gating",
+  "metadata": {
+    "files": "60 changed",
+    "additions": "+4,835",
+    "deletions": "-217",
+    "tests": "378 passed",
+    "merge": "CLEAN"
+  },
+  "thesis": {
+    "text": "This layer establishes the new composer and structured-question foundation: users can mention Conversations and Task Sessions through rich input, while both the Main Chat Agent and Workspace Agent can pause for ask_user, accept answers, and resume execution.",
+    "basis": "synthesis",
+    "evidence": [
+      {
+        "name": "Shared wire schema",
+        "path": "src/shared/api/backend-contracts.ts",
+        "start_line": 398,
+        "end_line": 410,
+        "language": "typescript",
+        "code": "    ),\n  description: z\n    .string()\n    .optional()\n    .describe(\n      \"One short sentence on what choosing this means — the trade-off or consequence, not a restatement of the label.\",\n    ),\n  preview: z\n    .string()\n    .optional()\n    .describe(\n      \"Optional preview shown in a monospace box while this option is focused. Use ONLY when users must visually compare concrete artifacts — ASCII mockups, code snippets, diagram variations, config examples. Multi-line supported. Single-select questions only; never for simple preference questions.\",\n    ),"
+      },
+      {
+        "name": "Replay proof",
+        "path": "src/main/backend/ai/workspace-agent-runner.test.ts",
+        "start_line": 582,
+        "end_line": 594,
+        "language": "typescript",
+        "code": "    expect(result.status).toBe(\"reported\");\n    // The replayed prompt resolves the pending call with the REAL answers —\n    // not the synthetic dangling-call ack.\n    const toolMessages = prompts[0].filter((m) => m.role === \"tool\");\n    expect(toolMessages).toHaveLength(1);\n    expect(toolMessages[0].content).toEqual([\n      {\n        type: \"tool-result\",\n        toolCallId: \"call_ask\",\n        toolName: \"ask_user\",\n        output: {\n          type: \"json\",\n          value: { answers: [{ key: \"q1\", selected: [\"PostgreSQL\"] }] },"
+      }
+    ]
+  },
+  "reading_order": [
+    {
+      "path": "src/shared/api/backend-contracts.ts",
+      "reason": {
+        "text": "Start with the ask_user Question, Option, and Answer wire contracts.",
+        "basis": "synthesis",
+        "evidence": [
+          {
+            "name": "Shared wire schema",
+            "path": "src/shared/api/backend-contracts.ts",
+            "start_line": 398,
+            "end_line": 410,
+            "language": "typescript",
+            "code": "    ),\n  description: z\n    .string()\n    .optional()\n    .describe(\n      \"One short sentence on what choosing this means — the trade-off or consequence, not a restatement of the label.\",\n    ),\n  preview: z\n    .string()\n    .optional()\n    .describe(\n      \"Optional preview shown in a monospace box while this option is focused. Use ONLY when users must visually compare concrete artifacts — ASCII mockups, code snippets, diagram variations, config examples. Multi-line supported. Single-select questions only; never for simple preference questions.\",\n    ),"
+          }
+        ]
+      }
+    },
+    {
+      "path": "src/main/backend/ai/ask-user-tool.ts → src/main/backend/ai/workspace-agent-runner.ts",
+      "reason": {
+        "text": "Trace how a pending call becomes either a Main Chat continuation or a Task Session replay.",
+        "basis": "synthesis",
+        "evidence": [
+          {
+            "name": "Abandoned call repair",
+            "path": "src/main/backend/ai/ask-user-tool.ts",
+            "start_line": 72,
+            "end_line": 88,
+            "language": "typescript",
+            "code": "export function closeAbandonedAskUserCalls(messages: UIMessage[]): UIMessage[] {\n  let changed = false;\n  const repaired = messages.map((message, index) => {\n    if (message.role !== \"assistant\") return message;\n    if (!message.parts?.some(isPendingAskUserPart)) return message;\n    const abandoned = messages.some(\n      (later, laterIndex) => laterIndex > index && later.role === \"user\",\n    );\n    if (!abandoned) return message;\n    changed = true;\n    return {\n      ...message,\n      parts: message.parts.map((part) =>\n        isPendingAskUserPart(part)\n          ? ({\n              ...part,\n              state: \"output-available\","
+          },
+          {
+            "name": "Replay proof",
+            "path": "src/main/backend/ai/workspace-agent-runner.test.ts",
+            "start_line": 582,
+            "end_line": 594,
+            "language": "typescript",
+            "code": "    expect(result.status).toBe(\"reported\");\n    // The replayed prompt resolves the pending call with the REAL answers —\n    // not the synthetic dangling-call ack.\n    const toolMessages = prompts[0].filter((m) => m.role === \"tool\");\n    expect(toolMessages).toHaveLength(1);\n    expect(toolMessages[0].content).toEqual([\n      {\n        type: \"tool-result\",\n        toolCallId: \"call_ask\",\n        toolName: \"ask_user\",\n        output: {\n          type: \"json\",\n          value: { answers: [{ key: \"q1\", selected: [\"PostgreSQL\"] }] },"
+          }
+        ]
+      }
+    },
+    {
+      "path": "src/main/backend/services/conversation-service.ts",
+      "reason": {
+        "text": "This service owns the needs-input, answer persistence, inbox, and resume boundaries.",
+        "basis": "synthesis",
+        "evidence": [
+          {
+            "name": "Partial validation then update",
+            "path": "src/main/backend/services/conversation-service.ts",
+            "start_line": 723,
+            "end_line": 745,
+            "language": "typescript",
+            "code": "    // Answer keys must address the questions actually asked.\n    const knownKeys = new Set(questionKeys(question.questions));\n    for (const answer of input.answers) {\n      if (!knownKeys.has(answer.key)) {\n        throw new AppError(\n          \"unknown_question_key\",\n          `Unknown question key: ${answer.key}`,\n          400,\n        );\n      }\n    }\n    const timestamp = now();\n    await this.conversations.updateTaskSessionRuntimeState(\n      spaceId,\n      taskSessionId,\n      {\n        status: \"running\",\n        state: {\n          ...state,\n          replay: {\n            ...replay,\n            question: { ...question, answers: input.answers },\n          },"
+          }
+        ]
+      }
+    },
+    {
+      "path": "src/renderer/features/agent-task/ui/ask-user-card.tsx + renderer parsers",
+      "reason": {
+        "text": "Finish with the UI state machine and verify that the wire contract is preserved end to end.",
+        "basis": "synthesis",
+        "evidence": [
+          {
+            "name": "Narrow Main Chat mapper",
+            "path": "src/renderer/widgets/chat-thread/ui/chat-thread.tsx",
+            "start_line": 1093,
+            "end_line": 1102,
+            "language": "tsx",
+            "code": "    const options = Array.isArray(entry.options)\n      ? entry.options\n          .filter(isRecord)\n          .filter((option) => typeof option.label === \"string\")\n          .map((option) => ({\n            label: option.label as string,\n            ...(typeof option.description === \"string\"\n              ? { description: option.description }\n              : {}),\n          }))"
+          },
+          {
+            "name": "Narrow Task Session mapper",
+            "path": "src/renderer/features/agent-task/model/task-session-transcript.ts",
+            "start_line": 198,
+            "end_line": 207,
+            "language": "typescript",
+            "code": "    const options = Array.isArray(entry.options)\n      ? entry.options\n          .filter(isRecord)\n          .filter((option) => typeof option.label === \"string\")\n          .map((option) => ({\n            label: option.label as string,\n            ...(typeof option.description === \"string\"\n              ? { description: option.description }\n              : {}),\n          }))"
+          }
+        ]
+      }
+    }
+  ],
+  "line_map": [
+    {
+      "line": "visible",
+      "claim": {
+        "text": "Hide unfinished Agents and Mini Apps surfaces; add the @mention hub, Conversation pills, and structured QuestionHub.",
+        "basis": "observed",
+        "evidence": [
+          {
+            "name": "Surface gate",
+            "path": "src/renderer/app/router/app-router.tsx",
+            "start_line": 28,
+            "end_line": 35,
+            "language": "tsx",
+            "code": "    // Experimental surfaces: a deep link with the flag off degrades to Home.\n    case \"agents\":\n      return FEATURE_FLAGS.experimentalSurfaces ? <AgentsPage /> : <HomePage />;\n    case \"mini-apps\":\n      return FEATURE_FLAGS.experimentalSurfaces ? (\n        <MiniAppsPage />\n      ) : (\n        <HomePage />"
+          }
+        ]
+      }
+    },
+    {
+      "line": "data",
+      "claim": {
+        "text": "The model emits AskUserInput, the shared schema validates it, UIMessage or Task Session replay persists it, and the user's answers return as a real tool result.",
+        "basis": "observed",
+        "evidence": [
+          {
+            "name": "Shared wire schema",
+            "path": "src/shared/api/backend-contracts.ts",
+            "start_line": 398,
+            "end_line": 410,
+            "language": "typescript",
+            "code": "    ),\n  description: z\n    .string()\n    .optional()\n    .describe(\n      \"One short sentence on what choosing this means — the trade-off or consequence, not a restatement of the label.\",\n    ),\n  preview: z\n    .string()\n    .optional()\n    .describe(\n      \"Optional preview shown in a monospace box while this option is focused. Use ONLY when users must visually compare concrete artifacts — ASCII mockups, code snippets, diagram variations, config examples. Multi-line supported. Single-select questions only; never for simple preference questions.\",\n    ),"
+          }
+        ]
+      }
+    },
+    {
+      "line": "state",
+      "claim": {
+        "text": "Main Chat resumes through assistant-ui addResult; Task Sessions resume from a needs-input checkpoint and persisted replay.",
+        "basis": "observed",
+        "evidence": [
+          {
+            "name": "Main Chat continuation",
+            "path": "src/renderer/widgets/chat-thread/ui/chat-thread.tsx",
+            "start_line": 997,
+            "end_line": 1003,
+            "language": "tsx",
+            "code": "  useEffect(() => {\n    if (!ready) return;\n    register({\n      id,\n      questions: questionsRef.current,\n      submit: (submitted) => partRef.current.addResult({ answers: submitted }),\n    });"
+          },
+          {
+            "name": "Replay proof",
+            "path": "src/main/backend/ai/workspace-agent-runner.test.ts",
+            "start_line": 582,
+            "end_line": 594,
+            "language": "typescript",
+            "code": "    expect(result.status).toBe(\"reported\");\n    // The replayed prompt resolves the pending call with the REAL answers —\n    // not the synthetic dangling-call ack.\n    const toolMessages = prompts[0].filter((m) => m.role === \"tool\");\n    expect(toolMessages).toHaveLength(1);\n    expect(toolMessages[0].content).toEqual([\n      {\n        type: \"tool-result\",\n        toolCallId: \"call_ask\",\n        toolName: \"ask_user\",\n        output: {\n          type: \"json\",\n          value: { answers: [{ key: \"q1\", selected: [\"PostgreSQL\"] }] },"
+          }
+        ]
+      }
+    },
+    {
+      "line": "permission",
+      "claim": {
+        "text": "Existing Space and Conversation access guards remain in force; the PR does not introduce a new cross-Space permission path.",
+        "basis": "observed",
+        "evidence": [
+          {
+            "name": "Access boundary",
+            "path": "src/main/backend/services/conversation-service.ts",
+            "start_line": 162,
+            "end_line": 168,
+            "language": "typescript",
+            "code": "    await this.access.ensureConversation(spaceId, conversationId);\n    return this.messages.list(spaceId, conversationId, input);\n  }\n\n  async listTaskSessions(spaceId: string, parentConversationId: string) {\n    await this.access.ensureConversation(spaceId, parentConversationId);\n    return this.conversations.listTaskSessions(spaceId, parentConversationId);"
+          }
+        ]
+      }
+    },
+    {
+      "line": "error",
+      "claim": {
+        "text": "Main Chat repairs abandoned calls with a skipped result; Task Session answer failures and concurrent submissions do not receive equivalent protection.",
+        "basis": "synthesis",
+        "evidence": [
+          {
+            "name": "Abandoned call repair",
+            "path": "src/main/backend/ai/ask-user-tool.ts",
+            "start_line": 72,
+            "end_line": 88,
+            "language": "typescript",
+            "code": "export function closeAbandonedAskUserCalls(messages: UIMessage[]): UIMessage[] {\n  let changed = false;\n  const repaired = messages.map((message, index) => {\n    if (message.role !== \"assistant\") return message;\n    if (!message.parts?.some(isPendingAskUserPart)) return message;\n    const abandoned = messages.some(\n      (later, laterIndex) => laterIndex > index && later.role === \"user\",\n    );\n    if (!abandoned) return message;\n    changed = true;\n    return {\n      ...message,\n      parts: message.parts.map((part) =>\n        isPendingAskUserPart(part)\n          ? ({\n              ...part,\n              state: \"output-available\","
+          },
+          {
+            "name": "Partial validation then update",
+            "path": "src/main/backend/services/conversation-service.ts",
+            "start_line": 723,
+            "end_line": 745,
+            "language": "typescript",
+            "code": "    // Answer keys must address the questions actually asked.\n    const knownKeys = new Set(questionKeys(question.questions));\n    for (const answer of input.answers) {\n      if (!knownKeys.has(answer.key)) {\n        throw new AppError(\n          \"unknown_question_key\",\n          `Unknown question key: ${answer.key}`,\n          400,\n        );\n      }\n    }\n    const timestamp = now();\n    await this.conversations.updateTaskSessionRuntimeState(\n      spaceId,\n      taskSessionId,\n      {\n        status: \"running\",\n        state: {\n          ...state,\n          replay: {\n            ...replay,\n            question: { ...question, answers: input.answers },\n          },"
+          }
+        ]
+      }
+    },
+    {
+      "line": "test",
+      "claim": {
+        "text": "The 378 passing tests cover schemas, runner replay, backend APIs, and pure state helpers, but they do not prove that preview reaches the UI or that answer claiming is concurrency-safe.",
+        "basis": "synthesis",
+        "evidence": [
+          {
+            "name": "Replay proof",
+            "path": "src/main/backend/ai/workspace-agent-runner.test.ts",
+            "start_line": 582,
+            "end_line": 594,
+            "language": "typescript",
+            "code": "    expect(result.status).toBe(\"reported\");\n    // The replayed prompt resolves the pending call with the REAL answers —\n    // not the synthetic dangling-call ack.\n    const toolMessages = prompts[0].filter((m) => m.role === \"tool\");\n    expect(toolMessages).toHaveLength(1);\n    expect(toolMessages[0].content).toEqual([\n      {\n        type: \"tool-result\",\n        toolCallId: \"call_ask\",\n        toolName: \"ask_user\",\n        output: {\n          type: \"json\",\n          value: { answers: [{ key: \"q1\", selected: [\"PostgreSQL\"] }] },"
+          },
+          {
+            "name": "Narrow Task Session mapper",
+            "path": "src/renderer/features/agent-task/model/task-session-transcript.ts",
+            "start_line": 198,
+            "end_line": 207,
+            "language": "typescript",
+            "code": "    const options = Array.isArray(entry.options)\n      ? entry.options\n          .filter(isRecord)\n          .filter((option) => typeof option.label === \"string\")\n          .map((option) => ({\n            label: option.label as string,\n            ...(typeof option.description === \"string\"\n              ? { description: option.description }\n              : {}),\n          }))"
+          },
+          {
+            "name": "Partial validation then update",
+            "path": "src/main/backend/services/conversation-service.ts",
+            "start_line": 723,
+            "end_line": 745,
+            "language": "typescript",
+            "code": "    // Answer keys must address the questions actually asked.\n    const knownKeys = new Set(questionKeys(question.questions));\n    for (const answer of input.answers) {\n      if (!knownKeys.has(answer.key)) {\n        throw new AppError(\n          \"unknown_question_key\",\n          `Unknown question key: ${answer.key}`,\n          400,\n        );\n      }\n    }\n    const timestamp = now();\n    await this.conversations.updateTaskSessionRuntimeState(\n      spaceId,\n      taskSessionId,\n      {\n        status: \"running\",\n        state: {\n          ...state,\n          replay: {\n            ...replay,\n            question: { ...question, answers: input.answers },\n          },"
+          }
+        ]
+      }
+    },
+    {
+      "line": "hidden",
+      "claim": {
+        "text": "Three product features and three vendored Aura syncs are bundled into a 4,835-line review unit, creating a broad review surface.",
+        "basis": "synthesis",
+        "evidence": [
+          {
+            "name": "Independent behavior line",
+            "path": "src/renderer/features/mention-hub/ui/use-mention-hub.ts",
+            "start_line": 63,
+            "end_line": 73,
+            "language": "typescript",
+            "code": "  const taskSessionsQuery = useQuery(taskSessionRequests.listForSpace(spaceId));\n  const skillsQuery = useQuery(skillRequests.list(spaceId));\n\n  const sources = useMemo<Record<MentionKind, MentionSource[]>>(() => {\n    // The \"Tasks\" tab mentions TASK SESSIONS (the delegated runs, rendered as\n    // the ListTree + status-dot pill), not chat threads. Status wording is\n    // inlined — features cannot import features (agent-task) per boundaries.\n    const statusLabel: Record<string, string> = {\n      running: \"Running\",\n      \"needs-input\": \"Needs you\",\n      completed: \"Done\","
+          }
+        ]
+      }
+    },
+    {
+      "line": "degradation",
+      "claim": {
+        "text": "The shared schema already carries preview, but two handwritten parsers introduce narrower shadow contracts and cause the feature to drift.",
+        "basis": "synthesis",
+        "evidence": [
+          {
+            "name": "Narrow Main Chat mapper",
+            "path": "src/renderer/widgets/chat-thread/ui/chat-thread.tsx",
+            "start_line": 1093,
+            "end_line": 1102,
+            "language": "tsx",
+            "code": "    const options = Array.isArray(entry.options)\n      ? entry.options\n          .filter(isRecord)\n          .filter((option) => typeof option.label === \"string\")\n          .map((option) => ({\n            label: option.label as string,\n            ...(typeof option.description === \"string\"\n              ? { description: option.description }\n              : {}),\n          }))"
+          },
+          {
+            "name": "Narrow Task Session mapper",
+            "path": "src/renderer/features/agent-task/model/task-session-transcript.ts",
+            "start_line": 198,
+            "end_line": 207,
+            "language": "typescript",
+            "code": "    const options = Array.isArray(entry.options)\n      ? entry.options\n          .filter(isRecord)\n          .filter((option) => typeof option.label === \"string\")\n          .map((option) => ({\n            label: option.label as string,\n            ...(typeof option.description === \"string\"\n              ? { description: option.description }\n              : {}),\n          }))"
+          }
+        ]
+      }
+    }
+  ],
+  "risks": [
+    {
+      "level": "blocker",
+      "claim": {
+        "text": "Option previews disappear in both renderer paths: the Main Chat and Task Session parsers copy only label and description, so QuestionHub never receives preview.",
+        "basis": "synthesis",
+        "evidence": [
+          {
+            "name": "Narrow Main Chat mapper",
+            "path": "src/renderer/widgets/chat-thread/ui/chat-thread.tsx",
+            "start_line": 1093,
+            "end_line": 1102,
+            "language": "tsx",
+            "code": "    const options = Array.isArray(entry.options)\n      ? entry.options\n          .filter(isRecord)\n          .filter((option) => typeof option.label === \"string\")\n          .map((option) => ({\n            label: option.label as string,\n            ...(typeof option.description === \"string\"\n              ? { description: option.description }\n              : {}),\n          }))"
+          },
+          {
+            "name": "Narrow Task Session mapper",
+            "path": "src/renderer/features/agent-task/model/task-session-transcript.ts",
+            "start_line": 198,
+            "end_line": 207,
+            "language": "typescript",
+            "code": "    const options = Array.isArray(entry.options)\n      ? entry.options\n          .filter(isRecord)\n          .filter((option) => typeof option.label === \"string\")\n          .map((option) => ({\n            label: option.label as string,\n            ...(typeof option.description === \"string\"\n              ? { description: option.description }\n              : {}),\n          }))"
+          }
+        ]
+      }
+    },
+    {
+      "level": "should_fix",
+      "claim": {
+        "text": "The answer trust boundary checks only known keys: it does not verify completeness, duplicate keys, single-select cardinality, or that selected values belong to the original options; an unconditional update also does not provide an atomic concurrent claim.",
+        "basis": "synthesis",
+        "evidence": [
+          {
+            "name": "Partial validation then update",
+            "path": "src/main/backend/services/conversation-service.ts",
+            "start_line": 723,
+            "end_line": 745,
+            "language": "typescript",
+            "code": "    // Answer keys must address the questions actually asked.\n    const knownKeys = new Set(questionKeys(question.questions));\n    for (const answer of input.answers) {\n      if (!knownKeys.has(answer.key)) {\n        throw new AppError(\n          \"unknown_question_key\",\n          `Unknown question key: ${answer.key}`,\n          400,\n        );\n      }\n    }\n    const timestamp = now();\n    await this.conversations.updateTaskSessionRuntimeState(\n      spaceId,\n      taskSessionId,\n      {\n        status: \"running\",\n        state: {\n          ...state,\n          replay: {\n            ...replay,\n            question: { ...question, answers: input.answers },\n          },"
+          }
+        ]
+      }
+    }
+  ],
+  "verification": [
+    {
+      "status": "verified",
+      "claim": {
+        "text": "Workspace Agent question suspension and replay have backend integration coverage.",
+        "basis": "observed",
+        "evidence": [
+          {
+            "name": "Replay proof",
+            "path": "src/main/backend/ai/workspace-agent-runner.test.ts",
+            "start_line": 582,
+            "end_line": 594,
+            "language": "typescript",
+            "code": "    expect(result.status).toBe(\"reported\");\n    // The replayed prompt resolves the pending call with the REAL answers —\n    // not the synthetic dangling-call ack.\n    const toolMessages = prompts[0].filter((m) => m.role === \"tool\");\n    expect(toolMessages).toHaveLength(1);\n    expect(toolMessages[0].content).toEqual([\n      {\n        type: \"tool-result\",\n        toolCallId: \"call_ask\",\n        toolName: \"ask_user\",\n        output: {\n          type: \"json\",\n          value: { answers: [{ key: \"q1\", selected: [\"PostgreSQL\"] }] },"
+          }
+        ]
+      }
+    },
+    {
+      "status": "verified",
+      "claim": {
+        "text": "The synthetic result for an abandoned Main Chat question has a focused pure-function regression test.",
+        "basis": "observed",
+        "evidence": [
+          {
+            "name": "Abandoned call regression proof",
+            "path": "src/main/backend/ai/ask-user-tool.test.ts",
+            "start_line": 23,
+            "end_line": 35,
+            "language": "typescript",
+            "code": "describe(\"closeAbandonedAskUserCalls\", () => {\n  test(\"closes an abandoned call (later user message) with the skipped result\", () => {\n    const messages = [user(\"u1\"), assistantAsking(\"a1\"), user(\"u2\")];\n    const repaired = closeAbandonedAskUserCalls(messages);\n    const part = repaired[1]?.parts[0] as unknown as {\n      state: string;\n      output: unknown;\n    };\n    expect(part.state).toBe(\"output-available\");\n    expect(part.output).toEqual(SKIPPED_ASK_USER_OUTPUT);\n    // Stored input untouched (pure repair, no mutation of the original).\n    const original = messages[1]?.parts[0] as unknown as { state: string };\n    expect(original.state).toBe(\"input-available\");"
+          }
+        ]
+      }
+    },
+    {
+      "status": "unproven",
+      "claim": {
+        "text": "It remains unproven that a real tool part containing preview reaches QuestionHub intact.",
+        "basis": "synthesis",
+        "evidence": [
+          {
+            "name": "Narrow Main Chat mapper",
+            "path": "src/renderer/widgets/chat-thread/ui/chat-thread.tsx",
+            "start_line": 1093,
+            "end_line": 1102,
+            "language": "tsx",
+            "code": "    const options = Array.isArray(entry.options)\n      ? entry.options\n          .filter(isRecord)\n          .filter((option) => typeof option.label === \"string\")\n          .map((option) => ({\n            label: option.label as string,\n            ...(typeof option.description === \"string\"\n              ? { description: option.description }\n              : {}),\n          }))"
+          },
+          {
+            "name": "Narrow Task Session mapper",
+            "path": "src/renderer/features/agent-task/model/task-session-transcript.ts",
+            "start_line": 198,
+            "end_line": 207,
+            "language": "typescript",
+            "code": "    const options = Array.isArray(entry.options)\n      ? entry.options\n          .filter(isRecord)\n          .filter((option) => typeof option.label === \"string\")\n          .map((option) => ({\n            label: option.label as string,\n            ...(typeof option.description === \"string\"\n              ? { description: option.description }\n              : {}),\n          }))"
+          }
+        ]
+      }
+    },
+    {
+      "status": "unproven",
+      "claim": {
+        "text": "API behavior for invalid, missing, duplicate, or concurrent answers remains unproven.",
+        "basis": "synthesis",
+        "evidence": [
+          {
+            "name": "Partial validation then update",
+            "path": "src/main/backend/services/conversation-service.ts",
+            "start_line": 723,
+            "end_line": 745,
+            "language": "typescript",
+            "code": "    // Answer keys must address the questions actually asked.\n    const knownKeys = new Set(questionKeys(question.questions));\n    for (const answer of input.answers) {\n      if (!knownKeys.has(answer.key)) {\n        throw new AppError(\n          \"unknown_question_key\",\n          `Unknown question key: ${answer.key}`,\n          400,\n        );\n      }\n    }\n    const timestamp = now();\n    await this.conversations.updateTaskSessionRuntimeState(\n      spaceId,\n      taskSessionId,\n      {\n        status: \"running\",\n        state: {\n          ...state,\n          replay: {\n            ...replay,\n            question: { ...question, answers: input.answers },\n          },"
+          }
+        ]
+      }
+    }
+  ],
+  "questions": [],
+  "recommendation": {
+    "decision": "request_changes",
+    "summary": {
+      "text": "Consolidate renderer parsing on the shared schema or one shared mapper so preview is preserved; validate the complete question set at the Task Session answer boundary and use an atomic claim. The gating and replay direction can otherwise remain.",
+      "basis": "synthesis",
+      "evidence": [
+        {
+          "name": "Narrow Main Chat mapper",
+          "path": "src/renderer/widgets/chat-thread/ui/chat-thread.tsx",
+          "start_line": 1093,
+          "end_line": 1102,
+          "language": "tsx",
+          "code": "    const options = Array.isArray(entry.options)\n      ? entry.options\n          .filter(isRecord)\n          .filter((option) => typeof option.label === \"string\")\n          .map((option) => ({\n            label: option.label as string,\n            ...(typeof option.description === \"string\"\n              ? { description: option.description }\n              : {}),\n          }))"
+        },
+        {
+          "name": "Narrow Task Session mapper",
+          "path": "src/renderer/features/agent-task/model/task-session-transcript.ts",
+          "start_line": 198,
+          "end_line": 207,
+          "language": "typescript",
+          "code": "    const options = Array.isArray(entry.options)\n      ? entry.options\n          .filter(isRecord)\n          .filter((option) => typeof option.label === \"string\")\n          .map((option) => ({\n            label: option.label as string,\n            ...(typeof option.description === \"string\"\n              ? { description: option.description }\n              : {}),\n          }))"
+        },
+        {
+          "name": "Partial validation then update",
+          "path": "src/main/backend/services/conversation-service.ts",
+          "start_line": 723,
+          "end_line": 745,
+          "language": "typescript",
+          "code": "    // Answer keys must address the questions actually asked.\n    const knownKeys = new Set(questionKeys(question.questions));\n    for (const answer of input.answers) {\n      if (!knownKeys.has(answer.key)) {\n        throw new AppError(\n          \"unknown_question_key\",\n          `Unknown question key: ${answer.key}`,\n          400,\n        );\n      }\n    }\n    const timestamp = now();\n    await this.conversations.updateTaskSessionRuntimeState(\n      spaceId,\n      taskSessionId,\n      {\n        status: \"running\",\n        state: {\n          ...state,\n          replay: {\n            ...replay,\n            question: { ...question, answers: input.answers },\n          },"
+        }
+      ]
+    },
+    "blockers": [
+      {
+        "text": "Option previews disappear in both renderer paths: the Main Chat and Task Session parsers copy only label and description, so QuestionHub never receives preview.",
+        "basis": "synthesis",
+        "evidence": [
+          {
+            "name": "Narrow Main Chat mapper",
+            "path": "src/renderer/widgets/chat-thread/ui/chat-thread.tsx",
+            "start_line": 1093,
+            "end_line": 1102,
+            "language": "tsx",
+            "code": "    const options = Array.isArray(entry.options)\n      ? entry.options\n          .filter(isRecord)\n          .filter((option) => typeof option.label === \"string\")\n          .map((option) => ({\n            label: option.label as string,\n            ...(typeof option.description === \"string\"\n              ? { description: option.description }\n              : {}),\n          }))"
+          },
+          {
+            "name": "Narrow Task Session mapper",
+            "path": "src/renderer/features/agent-task/model/task-session-transcript.ts",
+            "start_line": 198,
+            "end_line": 207,
+            "language": "typescript",
+            "code": "    const options = Array.isArray(entry.options)\n      ? entry.options\n          .filter(isRecord)\n          .filter((option) => typeof option.label === \"string\")\n          .map((option) => ({\n            label: option.label as string,\n            ...(typeof option.description === \"string\"\n              ? { description: option.description }\n              : {}),\n          }))"
+          }
+        ]
+      }
+    ],
+    "follow_ups": []
+  }
+}
