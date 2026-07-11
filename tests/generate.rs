@@ -114,6 +114,24 @@ fn reading_order_does_not_render_code_evidence() {
 }
 
 #[test]
+fn reading_order_links_files_to_their_pull_request_diff() {
+    let html = render_synthetic_review();
+    let reading_order = section_between(&html, "reading", "lines");
+
+    // sha256("src/core.rs"): GitHub's per-file anchor in the "Files changed" view.
+    let expected = "href=\"https://github.com/owner/repository/pull/7/files#diff-\
+7534aab5e9a7a7e69e0ac7e0c3dfe6b38c28ed17ff74289d268738251e1042a3\"";
+    assert!(
+        reading_order.contains(expected),
+        "reading order should link the file to its diff anchor"
+    );
+    assert!(
+        reading_order.contains("target=\"_blank\""),
+        "file links should open in a new tab"
+    );
+}
+
+#[test]
 fn code_evidence_rows_do_not_create_blank_preformatted_lines() {
     let html = render_synthetic_review();
 

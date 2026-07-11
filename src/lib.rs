@@ -1,4 +1,5 @@
 mod cli;
+mod file_icons;
 mod pull_request;
 mod render;
 mod review;

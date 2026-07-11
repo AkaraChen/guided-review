@@ -1,6 +1,6 @@
 use garde::Validate;
 use serde::{
-    Deserialize, Serialize,
+    Deserialize, Deserializer, Serialize,
     ser::{SerializeStruct, Serializer},
 };
 use thiserror::Error;
@@ -59,10 +59,29 @@ pub struct SupportedClaim {
 #[derive(Debug, Deserialize, Serialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct ReadingStep {
-    #[garde(custom(non_blank))]
-    pub path: String,
+    #[serde(deserialize_with = "path_or_paths")]
+    #[garde(length(min = 1), inner(custom(non_blank)))]
+    pub path: Vec<String>,
     #[garde(dive)]
     pub reason: SupportedClaim,
+}
+
+/// Accepts `"path": "a.rs"` and `"path": ["a.rs", "b.rs"]` interchangeably.
+fn path_or_paths<'de, D>(deserializer: D) -> Result<Vec<String>, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    #[derive(Deserialize)]
+    #[serde(untagged)]
+    enum PathInput {
+        One(String),
+        Many(Vec<String>),
+    }
+
+    Ok(match PathInput::deserialize(deserializer)? {
+        PathInput::One(path) => vec![path],
+        PathInput::Many(paths) => paths,
+    })
 }
 
 #[derive(Debug, Deserialize, Serialize, Validate)]
@@ -337,6 +356,24 @@ mod tests {
     #[test]
     fn accepts_an_otherwise_minimal_valid_review() {
         parse_review(&valid_review().to_string()).expect("valid review");
+    }
+
+    #[test]
+    fn accepts_a_reading_step_with_multiple_paths() {
+        let mut review = valid_review();
+        review["reading_order"][0]["path"] = json!(["src/core.rs", "src/render.rs"]);
+
+        parse_review(&review.to_string()).expect("valid multi-path reading step");
+    }
+
+    #[test]
+    fn rejects_a_reading_step_without_paths() {
+        let mut review = valid_review();
+        review["reading_order"][0]["path"] = json!([]);
+
+        let error = parse_review(&review.to_string()).expect_err("empty path list");
+
+        assert!(error.to_string().contains("reading_order[0].path"));
     }
 
     #[test]
