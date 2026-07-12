@@ -91,7 +91,7 @@ reviewer reaches for the way they reach for a diff today.
 ## Quick Start
 
 ```console
-cargo install --path crates/cli   # installs the `egr` binary
+cargo install --git https://github.com/AkaraChen/guided-review guided-review   # installs the `egr` binary
 egr generate -h                   # prints the review JSON Schema
 egr generate owner/repo#123 --review review.json --output out/index.html
 egr serve out                     # serves on 127.0.0.1, prints the URL

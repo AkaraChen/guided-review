@@ -146,7 +146,7 @@ This repository's CLI renders the artifact as a self-contained HTML page and
 serves it. Do not hand-write the HTML.
 
 1. Use `egr` if installed; otherwise install it once with
-   `cargo install --path crates/cli` from this repository.
+   `cargo install --git https://github.com/AkaraChen/guided-review guided-review`.
 2. Create all review-related files — review JSON, generated HTML, and the
    served `out/` directory — under a fresh temp directory, never inside the
    repository under review. Use `mktemp -d` on macOS/Linux; on Windows use a

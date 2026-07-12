@@ -81,7 +81,7 @@ Guided Review 适合这样的工程师：
 ## 快速开始
 
 ```console
-cargo install --path crates/cli   # 安装 `egr` 二进制
+cargo install --git https://github.com/AkaraChen/guided-review guided-review   # 安装 `egr` 二进制
 egr generate -h                   # 打印评审 JSON Schema
 egr generate owner/repo#123 --review review.json --output out/index.html
 egr serve out                     # 绑定 127.0.0.1 并打印 URL
