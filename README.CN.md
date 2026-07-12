@@ -4,9 +4,10 @@
 
 **把任何 Pull Request 变成一张可读的地图 —— 每个论断都有真实代码作证。**
 
+[![CI](https://github.com/AkaraChen/guided-review/actions/workflows/ci.yml/badge.svg)](https://github.com/AkaraChen/guided-review/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-2024_edition-b7410e?logo=rust&logoColor=white)](https://www.rust-lang.org)
 [![Agent skill](https://img.shields.io/badge/agent_skill-included-2ea44f)](skill/SKILL.md)
-[![Output](https://img.shields.io/badge/output-one_HTML_file-blue)](#快速开始)
 
 [English](./README.md) &nbsp;·&nbsp; 中文
 

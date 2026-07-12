@@ -4,9 +4,10 @@
 
 **Turn any pull request into a readable map — every claim backed by real code.**
 
+[![CI](https://github.com/AkaraChen/guided-review/actions/workflows/ci.yml/badge.svg)](https://github.com/AkaraChen/guided-review/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-2024_edition-b7410e?logo=rust&logoColor=white)](https://www.rust-lang.org)
 [![Agent skill](https://img.shields.io/badge/agent_skill-included-2ea44f)](skill/SKILL.md)
-[![Output](https://img.shields.io/badge/output-one_HTML_file-blue)](#quick-start)
 
 English &nbsp;·&nbsp; [中文](./README.CN.md)
 
