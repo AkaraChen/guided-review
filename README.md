@@ -49,7 +49,7 @@ your agent reads the diff  ──▶  writes a review payload  ──▶  egr re
 
 ## Install
 
-```console
+```bash
 # the egr CLI
 cargo install --git https://github.com/AkaraChen/guided-review guided-review
 
@@ -59,7 +59,7 @@ npx skills add akarachen/guided-review
 
 ## Quick Start
 
-```console
+```bash
 egr generate -h                   # prints the review JSON Schema
 egr generate owner/repo#123 --review review.json --output out/index.html
 egr serve out                     # serves on 127.0.0.1, prints the URL
