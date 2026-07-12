@@ -15,14 +15,18 @@ file-link, claim-card, code-card) pair a slim SSR partial with a `.js` custom
 element that owns its styles and guards `customElements.define`; single-use
 components (theme-switch, page-header) are one `.hbs` file with inline
 `<style>`/`<script>`. `examples/review.json` is the fixed development payload.
-Integration tests belong in `crates/cli/tests/`. Generated files and build
-artifacts stay under `target/`.
+Integration tests belong in `crates/cli/tests/`. `skill/` packages the
+repository's guided-review agent skill (`SKILL.md` plus `references/`), which
+drives the `egr` binary. Generated files and build artifacts stay under
+`target/`.
 
 ## Build, Test, and Development Commands
 
 - `cargo check`: compile quickly without producing a release binary.
 - `cargo run -- generate owner/repo#123 --review review.json --output review.html`:
   run the CLI against a review payload.
+- `cargo run -- serve out/`: serve a directory of generated pages on
+  127.0.0.1 (a free port is picked and printed).
 - `cargo test`: run unit and integration tests.
 - `cargo fmt --all --check`: verify Rust formatting.
 - `cargo clippy --all-targets --all-features -- -D warnings`: enforce lint-clean
