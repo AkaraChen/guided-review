@@ -1,20 +1,18 @@
+<div align="center">
+
 # Guided Review
 
 **Turn any pull request into a readable map — every claim backed by real code.**
 
-[中文版本](./README.CN.md)
+[![Rust](https://img.shields.io/badge/Rust-2024_edition-b7410e?logo=rust&logoColor=white)](https://www.rust-lang.org)
+[![Agent skill](https://img.shields.io/badge/agent_skill-included-2ea44f)](skill/SKILL.md)
+[![Output](https://img.shields.io/badge/output-one_HTML_file-blue)](#quick-start)
 
-![A rendered Guided Review page](./docs/screenshot.png)
+English &nbsp;·&nbsp; [中文](./README.CN.md)
 
-## Install
+<img src="./docs/screenshot.png" alt="A rendered Guided Review page" width="880" />
 
-```console
-# the egr CLI
-cargo install --git https://github.com/AkaraChen/guided-review guided-review
-
-# the agent skill (drives egr from your coding agent)
-npx skills add akarachen/guided-review
-```
+</div>
 
 ---
 
@@ -31,15 +29,51 @@ no longer writing changes — it is understanding them.
 **Guided Review is built on a simple idea: a review artifact should reduce
 comprehension cost, not add ceremony.**
 
+## How It Works
+
+```text
+your agent reads the diff  ──▶  writes a review payload  ──▶  egr renders one page
+        (any coding agent)        (JSON, schema-checked)        (self-contained HTML)
+```
+
+1. **The skill drives the review.** Your coding agent inspects the diff,
+   reconstructs the change, and writes a JSON payload following the schema
+   printed by `egr generate -h`.
+2. **The renderer enforces honesty.** Claims without code excerpts, excerpts
+   with the wrong line count, and approvals that contradict their own
+   blockers are rejected before any HTML is written.
+3. **You read one page.** Thesis, reading order, line map, risks,
+   verification status, and a recommendation — every statement linked to
+   syntax-highlighted lines from the real diff.
+
+## Install
+
+```console
+# the egr CLI
+cargo install --git https://github.com/AkaraChen/guided-review guided-review
+
+# the agent skill (drives egr from your coding agent)
+npx skills add akarachen/guided-review
+```
+
+## Quick Start
+
+```console
+egr generate -h                   # prints the review JSON Schema
+egr generate owner/repo#123 --review review.json --output out/index.html
+egr serve out                     # serves on 127.0.0.1, prints the URL
+```
+
+See [`examples/review.json`](examples/review.json) for a complete payload and
+[`skill/SKILL.md`](skill/SKILL.md) for the agent workflow.
+
 ## The Philosophy
 
 ### Evidence or it didn't happen
 
 Every statement in a Guided Review — the thesis, each risk, each answer —
-must cite real lines from the diff. The renderer rejects claims without code
-excerpts, excerpts with the wrong line count, and approve recommendations that
-contradict their own blockers. A review you can't verify is a review you can't
-trust.
+must cite real lines from the diff. A review you can't verify is a review you
+can't trust.
 
 ### A map, not a summary
 
@@ -96,13 +130,8 @@ reviewer reaches for the way they reach for a diff today.
 
 ---
 
-## Quick Start
+<div align="center">
 
-```console
-egr generate -h                   # prints the review JSON Schema
-egr generate owner/repo#123 --review review.json --output out/index.html
-egr serve out                     # serves on 127.0.0.1, prints the URL
-```
+Made by [@AkaraChen](https://github.com/AkaraChen) · Reviews are read by humans, proven by code.
 
-See [`examples/review.json`](examples/review.json) for a complete payload and
-[`skill/SKILL.md`](skill/SKILL.md) for the agent workflow.
+</div>
