@@ -6,7 +6,7 @@ dev:
     set -Eeuo pipefail
     set -m
 
-    preview_pr="progressus-hk/agent-workspace#56"
+    preview_pr="AkaraChen/2code#345"
     review_file="examples/review.json"
     output_dir="target/guided-review-preview"
     output_file="${output_dir}/index.html"
