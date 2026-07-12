@@ -1,0 +1,355 @@
+{
+  "title": "Terminal select-to-copy with success toast",
+  "metadata": {
+    "files": "2 changed",
+    "additions": "+268",
+    "deletions": "-4",
+    "tests": "4 added, CI green",
+    "merge": "MERGED"
+  },
+  "thesis": {
+    "text": "Selecting text in the xterm terminal now copies it to the clipboard automatically and shows a \"Text copied\" toast, and the existing keyboard copy shortcut is rerouted through the same deduplicated copy helper.",
+    "basis": "synthesis",
+    "evidence": [
+      {
+        "name": "Copy helper with toast and dedup",
+        "path": "src/features/terminal/Terminal.tsx",
+        "start_line": 292,
+        "end_line": 304,
+        "language": "typescript",
+        "code": "\t\t\tfunction copyTerminalSelection(selection: string) {\n\t\t\t\tif (!selection || selection === lastCopiedSelection) return;\n\t\t\t\tlastCopiedSelection = selection;\n\t\t\t\tvoid writeClipboardText(selection)\n\t\t\t\t\t.then(() => {\n\t\t\t\t\t\ttoaster.create({\n\t\t\t\t\t\t\ttitle: \"Text copied\",\n\t\t\t\t\t\t\ttype: \"success\",\n\t\t\t\t\t\t\tclosable: true,\n\t\t\t\t\t\t});\n\t\t\t\t\t})\n\t\t\t\t\t.catch(() => {});\n\t\t\t}"
+      },
+      {
+        "name": "Selection-change listener drives the copy",
+        "path": "src/features/terminal/Terminal.tsx",
+        "start_line": 306,
+        "end_line": 313,
+        "language": "typescript",
+        "code": "\t\t\tconst selectionDisposable = term.onSelectionChange(() => {\n\t\t\t\tif (!term.hasSelection()) {\n\t\t\t\t\tlastCopiedSelection = \"\";\n\t\t\t\t\treturn;\n\t\t\t\t}\n\t\t\t\tcopyTerminalSelection(term.getSelection());\n\t\t\t});\n\t\t\tcleanups.push(() => selectionDisposable.dispose());"
+      }
+    ]
+  },
+  "reading_order": [
+    {
+      "path": "src/features/terminal/Terminal.tsx",
+      "reason": {
+        "text": "The entire behavior change lives here: a per-terminal lastCopiedSelection, the copyTerminalSelection helper, the onSelectionChange listener, and the keyboard copy path rerouted through the shared helper.",
+        "basis": "observed",
+        "evidence": [
+          {
+            "name": "Keyboard copy reuses the helper",
+            "path": "src/features/terminal/Terminal.tsx",
+            "start_line": 349,
+            "end_line": 352,
+            "language": "typescript",
+            "code": "\t\t\t\t\tif (action.type === \"copy-selection-or-interrupt\") {\n\t\t\t\t\t\tcopyTerminalSelection(term.getSelection());\n\t\t\t\t\t\treturn false;\n\t\t\t\t\t}"
+          }
+        ]
+      }
+    },
+    {
+      "path": "src/features/terminal/Terminal.test.tsx",
+      "reason": {
+        "text": "New test file: 190 lines of mock scaffolding for xterm, Tauri plugins, and the terminal lib, then four tests that prove listener wiring, the toast payload, the empty-selection guard, and dedup.",
+        "basis": "observed",
+        "evidence": [
+          {
+            "name": "Copy and toast proven through the mocked terminal",
+            "path": "src/features/terminal/Terminal.test.tsx",
+            "start_line": 200,
+            "end_line": 214,
+            "language": "typescript",
+            "code": "\tit(\"copies the selected text and shows a toast after xterm reports a selection change\", async () => {\n\t\tconst terminal = renderTerminal();\n\n\t\tterminal.setSelection(\"selected text\");\n\t\tterminal.fireSelectionChange();\n\n\t\tawait waitFor(() => {\n\t\t\texpect(writeClipboardTextMock).toHaveBeenCalledWith(\"selected text\");\n\t\t});\n\t\texpect(toasterCreateMock).toHaveBeenCalledWith({\n\t\t\ttitle: \"Text copied\",\n\t\t\ttype: \"success\",\n\t\t\tclosable: true,\n\t\t});\n\t});"
+      }
+        ]
+      }
+    }
+  ],
+  "line_map": [
+    {
+      "line": "visible",
+      "claim": {
+        "text": "Any non-empty terminal selection is written to the clipboard and answered with a closable \"Text copied\" success toast; the keyboard copy shortcut now shows the same toast because it calls the same helper.",
+        "basis": "observed",
+        "evidence": [
+          {
+            "name": "Toast on successful clipboard write",
+            "path": "src/features/terminal/Terminal.tsx",
+            "start_line": 295,
+            "end_line": 303,
+            "language": "typescript",
+            "code": "\t\t\t\tvoid writeClipboardText(selection)\n\t\t\t\t\t.then(() => {\n\t\t\t\t\t\ttoaster.create({\n\t\t\t\t\t\t\ttitle: \"Text copied\",\n\t\t\t\t\t\t\ttype: \"success\",\n\t\t\t\t\t\t\tclosable: true,\n\t\t\t\t\t\t});\n\t\t\t\t\t})\n\t\t\t\t\t.catch(() => {});"
+          }
+        ]
+      }
+    },
+    {
+      "line": "state",
+      "claim": {
+        "text": "lastCopiedSelection is per-terminal-instance effect state that suppresses copying the identical selection twice; it resets when the selection is cleared, so reselecting the same text copies and toasts again.",
+        "basis": "observed",
+        "evidence": [
+          {
+            "name": "Dedup state declared beside other effect-local state",
+            "path": "src/features/terminal/Terminal.tsx",
+            "start_line": 225,
+            "end_line": 228,
+            "language": "typescript",
+            "code": "\t\t\tpendingEventsRef.current = [];\n\t\t\tconst liveOutputBuffer: string[] = [];\n\t\t\tlet liveOutputFrame: number | null = null;\n\t\t\tlet lastCopiedSelection = \"\";"
+          },
+          {
+            "name": "Reset on cleared selection",
+            "path": "src/features/terminal/Terminal.tsx",
+            "start_line": 306,
+            "end_line": 312,
+            "language": "typescript",
+            "code": "\t\t\tconst selectionDisposable = term.onSelectionChange(() => {\n\t\t\t\tif (!term.hasSelection()) {\n\t\t\t\t\tlastCopiedSelection = \"\";\n\t\t\t\t\treturn;\n\t\t\t\t}\n\t\t\t\tcopyTerminalSelection(term.getSelection());\n\t\t\t});"
+          }
+        ]
+      }
+    },
+    {
+      "line": "hidden",
+      "claim": {
+        "text": "The PR description says selections are copied \"after pointer release\", but the code copies on every onSelectionChange event with no pointer gating. xterm emits selection changes while a drag extends the selection, so each intermediate selection (\"h\", \"he\", \"hel\", ...) can trigger its own clipboard write and toast; the dedup only stops exact repeats, not growing prefixes.",
+        "basis": "synthesis",
+        "evidence": [
+          {
+            "name": "Copy driven directly by selection change, no pointer-release gate",
+            "path": "src/features/terminal/Terminal.tsx",
+            "start_line": 306,
+            "end_line": 313,
+            "language": "typescript",
+            "code": "\t\t\tconst selectionDisposable = term.onSelectionChange(() => {\n\t\t\t\tif (!term.hasSelection()) {\n\t\t\t\t\tlastCopiedSelection = \"\";\n\t\t\t\t\treturn;\n\t\t\t\t}\n\t\t\t\tcopyTerminalSelection(term.getSelection());\n\t\t\t});\n\t\t\tcleanups.push(() => selectionDisposable.dispose());"
+          }
+        ]
+      }
+    },
+    {
+      "line": "error",
+      "claim": {
+        "text": "A failed clipboard write is swallowed by an empty catch, and lastCopiedSelection is set before the write resolves, so after a failure the same selection is treated as already copied: no error surfaced, and retrying via the keyboard shortcut is a silent no-op until the selection is cleared.",
+        "basis": "observed",
+        "evidence": [
+          {
+            "name": "Dedup recorded before the async write, failure swallowed",
+            "path": "src/features/terminal/Terminal.tsx",
+            "start_line": 292,
+            "end_line": 304,
+            "language": "typescript",
+            "code": "\t\t\tfunction copyTerminalSelection(selection: string) {\n\t\t\t\tif (!selection || selection === lastCopiedSelection) return;\n\t\t\t\tlastCopiedSelection = selection;\n\t\t\t\tvoid writeClipboardText(selection)\n\t\t\t\t\t.then(() => {\n\t\t\t\t\t\ttoaster.create({\n\t\t\t\t\t\t\ttitle: \"Text copied\",\n\t\t\t\t\t\t\ttype: \"success\",\n\t\t\t\t\t\t\tclosable: true,\n\t\t\t\t\t\t});\n\t\t\t\t\t})\n\t\t\t\t\t.catch(() => {});\n\t\t\t}"
+          }
+        ]
+      }
+    },
+    {
+      "line": "test",
+      "claim": {
+        "text": "Four unit tests prove the listener wiring, the toast payload, the empty-selection guard, and the exact-repeat dedup through a hand-written xterm mock. They fire selection changes one at a time, so they do not prove drag-time behavior or the failure path.",
+        "basis": "observed",
+        "evidence": [
+          {
+            "name": "Dedup proven for an exact repeat",
+            "path": "src/features/terminal/Terminal.test.tsx",
+            "start_line": 226,
+            "end_line": 241,
+            "language": "typescript",
+            "code": "\tit(\"does not copy the same selection twice\", async () => {\n\t\tconst terminal = renderTerminal();\n\n\t\tterminal.setSelection(\"selected text\");\n\t\tterminal.fireSelectionChange();\n\n\t\tawait waitFor(() => {\n\t\t\texpect(writeClipboardTextMock).toHaveBeenCalledTimes(1);\n\t\t});\n\n\t\tterminal.setSelection(\"selected text\");\n\t\tterminal.fireSelectionChange();\n\n\t\texpect(writeClipboardTextMock).toHaveBeenCalledTimes(1);\n\t\texpect(toasterCreateMock).toHaveBeenCalledTimes(1);\n\t});"
+          }
+        ]
+      }
+    },
+    {
+      "line": "complexity",
+      "claim": {
+        "text": "The test file re-implements the terminal's entire ./lib surface as a mock, so any signature change in that module breaks this test file even when select-to-copy behavior is unaffected.",
+        "basis": "observed",
+        "evidence": [
+          {
+            "name": "Full ./lib module mocked by hand",
+            "path": "src/features/terminal/Terminal.test.tsx",
+            "start_line": 143,
+            "end_line": 151,
+            "language": "typescript",
+            "code": "vi.mock(\"./lib\", () => ({\n\tapplyTerminalFontFamilyCssVariable: vi.fn(),\n\tbuildFontFamilyCss: (fontFamily: string) => fontFamily,\n\tcreateResizeScheduler: () => ({\n\t\tobserve: vi.fn(),\n\t\tdispose: vi.fn(),\n\t}),\n\tcreateTerminalKeyEventHandler: () => () => true,\n\tgetTerminalParkingContainer: () => document.body,"
+          }
+        ]
+      }
+    }
+  ],
+  "risks": [
+    {
+      "level": "should_fix",
+      "title": "Toast and clipboard spam while dragging a selection",
+      "claim": {
+        "text": "Because copying is driven by onSelectionChange with no pointer-release gating, dragging a selection can fire a clipboard write plus a success toast for every intermediate selection. The dedup key only blocks identical strings, so growing selections all pass. Needs a manual drag check; a pointerup/mouseup gate or debounce would match the PR's stated design.",
+        "basis": "synthesis",
+        "evidence": [
+          {
+            "name": "No pointer gating on the copy trigger",
+            "path": "src/features/terminal/Terminal.tsx",
+            "start_line": 306,
+            "end_line": 312,
+            "language": "typescript",
+            "code": "\t\t\tconst selectionDisposable = term.onSelectionChange(() => {\n\t\t\t\tif (!term.hasSelection()) {\n\t\t\t\t\tlastCopiedSelection = \"\";\n\t\t\t\t\treturn;\n\t\t\t\t}\n\t\t\t\tcopyTerminalSelection(term.getSelection());\n\t\t\t});"
+          }
+        ]
+      }
+    },
+    {
+      "level": "follow_up",
+      "title": "Failed copy is silent and blocks retry of the same selection",
+      "claim": {
+        "text": "lastCopiedSelection is recorded before writeClipboardText resolves and the catch is empty, so a failed write shows nothing and makes the keyboard shortcut a no-op for that selection. Resetting lastCopiedSelection in the catch would restore retry.",
+        "basis": "observed",
+        "evidence": [
+          {
+            "name": "Dedup set before the write, empty catch",
+            "path": "src/features/terminal/Terminal.tsx",
+            "start_line": 293,
+            "end_line": 303,
+            "language": "typescript",
+            "code": "\t\t\t\tif (!selection || selection === lastCopiedSelection) return;\n\t\t\t\tlastCopiedSelection = selection;\n\t\t\t\tvoid writeClipboardText(selection)\n\t\t\t\t\t.then(() => {\n\t\t\t\t\t\ttoaster.create({\n\t\t\t\t\t\t\ttitle: \"Text copied\",\n\t\t\t\t\t\t\ttype: \"success\",\n\t\t\t\t\t\t\tclosable: true,\n\t\t\t\t\t\t});\n\t\t\t\t\t})\n\t\t\t\t\t.catch(() => {});"
+          }
+        ]
+      }
+    },
+    {
+      "level": "follow_up",
+      "title": "Test scaffolding duplicates the ./lib module surface",
+      "claim": {
+        "text": "The hand-written mock of every ./lib export couples this test file to the module's full API; extracting the copy logic into a testable unit would shrink the mock and the breakage surface.",
+        "basis": "observed",
+        "evidence": [
+          {
+            "name": "Hand-maintained module mock",
+            "path": "src/features/terminal/Terminal.test.tsx",
+            "start_line": 143,
+            "end_line": 151,
+            "language": "typescript",
+            "code": "vi.mock(\"./lib\", () => ({\n\tapplyTerminalFontFamilyCssVariable: vi.fn(),\n\tbuildFontFamilyCss: (fontFamily: string) => fontFamily,\n\tcreateResizeScheduler: () => ({\n\t\tobserve: vi.fn(),\n\t\tdispose: vi.fn(),\n\t}),\n\tcreateTerminalKeyEventHandler: () => () => true,\n\tgetTerminalParkingContainer: () => document.body,"
+          }
+        ]
+      }
+    }
+  ],
+  "verification": [
+    {
+      "status": "verified",
+      "title": "Copy and toast wiring",
+      "claim": {
+        "text": "A selection change on the mocked terminal writes the selected text to the clipboard and creates the exact toast payload; CI's Frontend, Rust, and smoke jobs all passed on the head commit.",
+        "basis": "observed",
+        "evidence": [
+          {
+            "name": "Wiring test",
+            "path": "src/features/terminal/Terminal.test.tsx",
+            "start_line": 200,
+            "end_line": 208,
+            "language": "typescript",
+            "code": "\tit(\"copies the selected text and shows a toast after xterm reports a selection change\", async () => {\n\t\tconst terminal = renderTerminal();\n\n\t\tterminal.setSelection(\"selected text\");\n\t\tterminal.fireSelectionChange();\n\n\t\tawait waitFor(() => {\n\t\t\texpect(writeClipboardTextMock).toHaveBeenCalledWith(\"selected text\");\n\t\t});"
+          }
+        ]
+      }
+    },
+    {
+      "status": "verified",
+      "title": "Exact-repeat dedup",
+      "claim": {
+        "text": "Firing the same selection twice produces exactly one clipboard write and one toast.",
+        "basis": "observed",
+        "evidence": [
+          {
+            "name": "Dedup assertions",
+            "path": "src/features/terminal/Terminal.test.tsx",
+            "start_line": 236,
+            "end_line": 241,
+            "language": "typescript",
+            "code": "\t\tterminal.setSelection(\"selected text\");\n\t\tterminal.fireSelectionChange();\n\n\t\texpect(writeClipboardTextMock).toHaveBeenCalledTimes(1);\n\t\texpect(toasterCreateMock).toHaveBeenCalledTimes(1);\n\t});"
+          }
+        ]
+      }
+    },
+    {
+      "status": "unproven",
+      "title": "Drag-time behavior in a real terminal",
+      "claim": {
+        "text": "The mock fires selection changes only when a test calls fireSelectionChange manually, so nothing proves how many copies and toasts a real mouse drag produces, which is exactly where the pointer-release claim in the PR description matters.",
+        "basis": "synthesis",
+        "evidence": [
+          {
+            "name": "Selection changes are test-driven, not drag-driven",
+            "path": "src/features/terminal/Terminal.test.tsx",
+            "start_line": 64,
+            "end_line": 67,
+            "language": "typescript",
+            "code": "\t\tonSelectionChange(listener: () => void) {\n\t\t\tthis.selectionListeners.push(listener);\n\t\t\treturn { dispose: vi.fn() };\n\t\t}"
+          }
+        ]
+      }
+    }
+  ],
+  "questions": [
+    {
+      "text": "Was a real mouse drag verified manually? The description says copy happens \"after pointer release\", but the code copies on each onSelectionChange, and xterm can emit those while the drag is still extending the selection.",
+      "evidence": [
+        {
+          "name": "Selection listener without pointer gating",
+          "path": "src/features/terminal/Terminal.tsx",
+          "start_line": 306,
+          "end_line": 312,
+          "language": "typescript",
+          "code": "\t\t\tconst selectionDisposable = term.onSelectionChange(() => {\n\t\t\t\tif (!term.hasSelection()) {\n\t\t\t\t\tlastCopiedSelection = \"\";\n\t\t\t\t\treturn;\n\t\t\t\t}\n\t\t\t\tcopyTerminalSelection(term.getSelection());\n\t\t\t});"
+        }
+      ]
+    }
+  ],
+  "recommendation": {
+    "decision": "comment_only",
+    "summary": {
+      "text": "The PR is already merged and the happy path is small, well-factored, and unit-tested: one helper owns copy, dedup, and toast for both the mouse and keyboard paths. The open items are behavioral, not structural: confirm drag selection does not spam toasts, and make a failed copy retryable.",
+      "basis": "synthesis",
+      "evidence": [
+        {
+          "name": "Single helper shared by both copy paths",
+          "path": "src/features/terminal/Terminal.tsx",
+          "start_line": 349,
+          "end_line": 352,
+          "language": "typescript",
+          "code": "\t\t\t\t\tif (action.type === \"copy-selection-or-interrupt\") {\n\t\t\t\t\t\tcopyTerminalSelection(term.getSelection());\n\t\t\t\t\t\treturn false;\n\t\t\t\t\t}"
+        }
+      ]
+    },
+    "blockers": [],
+    "follow_ups": [
+      {
+        "text": "Gate the copy on pointer release (or debounce selection changes) so a drag produces one copy and one toast, matching the PR's stated design.",
+        "basis": "synthesis",
+        "evidence": [
+          {
+            "name": "Current trigger fires per selection change",
+            "path": "src/features/terminal/Terminal.tsx",
+            "start_line": 306,
+            "end_line": 312,
+            "language": "typescript",
+            "code": "\t\t\tconst selectionDisposable = term.onSelectionChange(() => {\n\t\t\t\tif (!term.hasSelection()) {\n\t\t\t\t\tlastCopiedSelection = \"\";\n\t\t\t\t\treturn;\n\t\t\t\t}\n\t\t\t\tcopyTerminalSelection(term.getSelection());\n\t\t\t});"
+          }
+        ]
+      },
+      {
+        "text": "Reset lastCopiedSelection when writeClipboardText rejects so the user can retry the same selection, and consider surfacing the failure instead of an empty catch.",
+        "basis": "observed",
+        "evidence": [
+          {
+            "name": "Failure path leaves dedup set",
+            "path": "src/features/terminal/Terminal.tsx",
+            "start_line": 293,
+            "end_line": 303,
+            "language": "typescript",
+            "code": "\t\t\t\tif (!selection || selection === lastCopiedSelection) return;\n\t\t\t\tlastCopiedSelection = selection;\n\t\t\t\tvoid writeClipboardText(selection)\n\t\t\t\t\t.then(() => {\n\t\t\t\t\t\ttoaster.create({\n\t\t\t\t\t\t\ttitle: \"Text copied\",\n\t\t\t\t\t\t\ttype: \"success\",\n\t\t\t\t\t\t\tclosable: true,\n\t\t\t\t\t\t});\n\t\t\t\t\t})\n\t\t\t\t\t.catch(() => {});"
+          }
+        ]
+      }
+    ]
+  }
+}
