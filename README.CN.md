@@ -1,7 +1,5 @@
 # Guided Review
 
-> 本项目正在密集开发中。
-
 **把任何 Pull Request 变成一张可读的地图 —— 每个论断都有真实代码作证。**
 
 [English Version](./README.md)

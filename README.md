@@ -1,7 +1,5 @@
 # Guided Review
 
-> This project is under heavy construction.
-
 **Turn any pull request into a readable map — every claim backed by real code.**
 
 [中文版本](./README.CN.md)
