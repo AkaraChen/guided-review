@@ -3,11 +3,24 @@ use serde::Serialize;
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 
-use crate::{GuidedReview, PullRequestRef, file_icons};
+use crate::{GuidedReview, PullRequestRef};
 
 const REVIEW_TEMPLATE: &str = include_str!("../templates/guided-review.html.hbs");
 const EVIDENCE_PARTIAL: &str = include_str!("../templates/evidence.html.hbs");
 const FILE_LINK_PARTIAL: &str = include_str!("../templates/file-link.html.hbs");
+const CLAIM_ROW_PARTIAL: &str = include_str!("../templates/claim-row.html.hbs");
+const THEME_SWITCH_PARTIAL: &str = include_str!("../templates/theme-switch.html.hbs");
+
+/// Repeated components are web components: each partial renders a custom
+/// element whose class, styles, and registry guard live in a sibling .js file,
+/// emitted once into the page head via the `component-scripts` partial.
+/// Components rendered a single time (for example theme-switch) instead inline
+/// their own <style>/<script> tags directly in their template.
+const COMPONENT_SCRIPTS: &[&str] = &[
+    include_str!("../templates/file-link.js"),
+    include_str!("../templates/claim-row.js"),
+    include_str!("../templates/code-card.js"),
+];
 
 #[derive(Serialize)]
 struct PageContext<'a> {
@@ -33,8 +46,6 @@ handlebars_helper!(diff_anchor: |path: String| {
         .collect::<String>()
 });
 
-handlebars_helper!(file_icon_bg: |path: String| file_icons::for_path(&path).background);
-handlebars_helper!(file_icon_fg: |path: String| file_icons::for_path(&path).foreground);
 handlebars_helper!(short_path: |path: String| shorten_path(&path));
 
 /// Middle-elides a long path (`src/…/ai/runner.ts`), always keeping the file name.
@@ -63,12 +74,16 @@ pub fn render_review(
     let mut handlebars = Handlebars::new();
     handlebars.set_strict_mode(true);
     handlebars.register_helper("diff_anchor", Box::new(diff_anchor));
-    handlebars.register_helper("file_icon_bg", Box::new(file_icon_bg));
-    handlebars.register_helper("file_icon_fg", Box::new(file_icon_fg));
     handlebars.register_helper("short_path", Box::new(short_path));
     handlebars.register_template_string("guided-review", REVIEW_TEMPLATE)?;
     handlebars.register_partial("evidence", EVIDENCE_PARTIAL)?;
     handlebars.register_partial("file-link", FILE_LINK_PARTIAL)?;
+    handlebars.register_partial("claim-row", CLAIM_ROW_PARTIAL)?;
+    handlebars.register_partial("theme-switch", THEME_SWITCH_PARTIAL)?;
+    handlebars.register_partial(
+        "component-scripts",
+        format!("<script>\n{}</script>", COMPONENT_SCRIPTS.join("\n")),
+    )?;
 
     let context = PageContext {
         pull_request: PullRequestContext {

@@ -129,54 +129,6 @@
         display: none;
       }
 
-      .theme-switch {
-        position: fixed;
-        /* Vertically centered in the 48px sticky title bar: (48px - 36px pill) / 2 */
-        top: 6px;
-        right: 16px;
-        z-index: 40;
-        display: inline-flex;
-        gap: 2px;
-        border: 1px solid var(--line);
-        border-radius: 999px;
-        background: var(--card);
-        padding: 3px;
-        box-shadow: var(--shadow-toolbar);
-      }
-
-      .theme-switch button {
-        display: grid;
-        place-items: center;
-        width: 28px;
-        height: 28px;
-        border: 0;
-        border-radius: 999px;
-        background: transparent;
-        padding: 0;
-        color: var(--muted);
-        cursor: pointer;
-        transition: color 150ms var(--ease), background-color 150ms var(--ease);
-      }
-
-      .theme-switch button svg {
-        width: 15px;
-        height: 15px;
-      }
-
-      .theme-switch button:hover {
-        color: var(--ink);
-      }
-
-      .theme-switch button:focus-visible {
-        outline: 2px solid var(--primary);
-        outline-offset: 1px;
-      }
-
-      .theme-switch button[aria-pressed="true"] {
-        background: var(--muted-fill);
-        color: var(--ink);
-      }
-
       .page {
         max-width: 1180px;
         margin: 0 auto;
@@ -199,6 +151,49 @@
       }
 
       body.title-stuck .sticky-title {
+        opacity: 1;
+        transform: translateY(0);
+        visibility: visible;
+        pointer-events: auto;
+        cursor: pointer;
+      }
+
+      .back-to-top {
+        position: fixed;
+        right: 20px;
+        bottom: 20px;
+        z-index: 15;
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--card);
+        padding: 0;
+        color: var(--ink);
+        box-shadow: var(--shadow-toolbar);
+        cursor: pointer;
+        opacity: 0;
+        transform: translateY(8px);
+        visibility: hidden;
+      }
+
+      .back-to-top svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      .back-to-top:hover {
+        box-shadow: var(--shadow-panel);
+      }
+
+      .back-to-top:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 2px;
+      }
+
+      body.title-stuck .back-to-top {
         opacity: 1;
         transform: translateY(0);
         visibility: visible;
@@ -260,8 +255,8 @@
 
       h2 {
         margin: 0 0 16px;
-        font-size: 26px;
-        font-weight: 300;
+        font-size: 20px;
+        font-weight: 400;
       }
 
       /* Section titles stay pinned below the sticky title bar while their card scrolls */
@@ -269,10 +264,20 @@
         position: sticky;
         top: 48px;
         z-index: 2;
+        display: flex;
+        align-items: center;
+        gap: 10px;
         margin: -28px -28px 4px;
         border-radius: 16px 16px 0 0;
         background: var(--card);
         padding: 20px 28px 12px;
+      }
+
+      section > h2 svg {
+        flex: none;
+        width: 18px;
+        height: 18px;
+        color: var(--muted);
       }
 
       h3 {
@@ -425,8 +430,7 @@
         color: var(--muted);
       }
 
-      .mini > p,
-      .risk-row > p {
+      .mini > p {
         margin-top: 12px;
         color: var(--muted);
       }
@@ -441,31 +445,6 @@
         margin-top: 8px;
       }
 
-      .tag {
-        display: inline-flex;
-        align-items: center;
-        min-height: 26px;
-        border-radius: 999px;
-        background: var(--muted-fill);
-        color: var(--ink);
-        padding: 2px 12px;
-        font-family: var(--font-mono);
-        font-size: 11px;
-        font-weight: 500;
-        letter-spacing: 0.06em;
-        text-transform: uppercase;
-      }
-
-      .tag.warn {
-        background: var(--warn-fill);
-        color: var(--warn-ink);
-      }
-
-      .tag.ok {
-        background: var(--ok-fill);
-        color: var(--ok);
-      }
-
       .reading-list {
         counter-reset: step;
         display: grid;
@@ -477,14 +456,14 @@
         display: grid;
         grid-template-columns: 24px minmax(0, 1fr);
         gap: 12px;
-        align-items: baseline;
-        border-top: 1px solid var(--line);
-        padding-top: 14px;
+        align-items: start;
       }
 
-      .reading-item:first-child {
-        border-top: 0;
-        padding-top: 0;
+      .reading-item h3 {
+        display: inline-flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 2px 6px;
       }
 
       .reading-item::before {
@@ -493,46 +472,14 @@
         color: var(--muted);
         font-family: var(--font-mono);
         font-size: 14px;
+        /* Match the file-link's first line box (13px text / 16px icon) so the
+           number sits on the same visual line as the link. */
+        line-height: 20px;
         text-align: right;
       }
 
-      .reading-item > *,
-      .risk-row > * {
+      .reading-item > * {
         min-width: 0;
-      }
-
-      .line-link {
-        margin-top: 8px;
-        font-size: 14px;
-        font-weight: 500;
-      }
-
-      .file-link {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        min-width: 0;
-        color: var(--primary-strong);
-        font-family: var(--font-mono);
-        font-size: 13px;
-        font-weight: 500;
-        text-decoration: none;
-      }
-
-      .file-link:hover {
-        text-decoration: underline;
-        text-decoration-thickness: 1px;
-        text-underline-offset: 3px;
-      }
-
-      .file-link svg {
-        flex: none;
-        width: 16px;
-        height: 16px;
-      }
-
-      .file-link span {
-        overflow-wrap: anywhere;
       }
 
       code {
@@ -544,83 +491,10 @@
         font-size: 0.86em;
       }
 
-      .risk-table {
+      .claim-table {
         display: grid;
         gap: 12px;
         margin-top: 14px;
-      }
-
-      .risk-row {
-        display: grid;
-        grid-template-columns: 1fr;
-        gap: 12px;
-        border-top: 1px solid var(--line);
-        padding-top: 16px;
-      }
-
-      /* Code evidence styled as an openknowledge product window */
-      .code-card {
-        border: 1px solid var(--line-strong);
-        border-radius: 12px;
-        background: var(--code-bg);
-        color: var(--code-ink);
-        margin-top: 14px;
-        overflow: hidden;
-        box-shadow: var(--shadow-window);
-      }
-
-      .code-card header {
-        display: flex;
-        align-items: baseline;
-        justify-content: space-between;
-        gap: 16px;
-        border-bottom: 1px solid rgba(240, 240, 238, 0.12);
-        padding: 12px 14px;
-      }
-
-      .code-card h3 {
-        min-width: 0;
-        margin: 0;
-        color: var(--code-ink);
-        font-size: 13.5px;
-        font-weight: 500;
-        letter-spacing: 0;
-      }
-
-      .code-card .file-link {
-        max-width: 65%;
-        color: #8ec6ff;
-        font-size: 12px;
-      }
-
-      .code-card pre {
-        margin: 0;
-        overflow-x: auto;
-        padding: 12px 0;
-        font: 12px/1.6 var(--font-mono);
-      }
-
-      .code-line {
-        display: grid;
-        grid-template-columns: 46px minmax(max-content, 1fr);
-        gap: 12px;
-        padding: 0 14px;
-      }
-
-      .ln {
-        color: rgba(240, 240, 238, 0.4);
-        font-variant-numeric: tabular-nums;
-        text-align: right;
-        user-select: none;
-      }
-
-      .src {
-        white-space: pre;
-      }
-
-      /* shiki enhancement: token colors come from inline styles; keep our window chrome */
-      .code-card pre.is-highlighted .src {
-        color: #dbd7cf;
       }
 
       .footer-note {
@@ -629,9 +503,10 @@
       }
 
       @media (prefers-reduced-motion: no-preference) {
-        .sticky-title {
+        .sticky-title,
+        .back-to-top {
           transition: opacity 150ms var(--ease), transform 150ms var(--ease),
-            visibility 150ms var(--ease);
+            visibility 150ms var(--ease), box-shadow 150ms var(--ease);
         }
 
         section {
@@ -749,19 +624,10 @@
 
       }
     </style>
-    <script>
-      // Apply a saved theme before first paint to avoid a flash; "system" stores nothing.
-      try {
-        const savedTheme = localStorage.getItem("theme");
-        if (savedTheme === "light" || savedTheme === "dark") {
-          document.documentElement.dataset.theme = savedTheme;
-        }
-      } catch {
-        /* no storage access: stay on system theme */
-      }
-    </script>
+    {{> component-scripts}}
   </head>
   <body>
+    {{> theme-switch}}
     <button
       class="hamburger"
       type="button"
@@ -774,20 +640,12 @@
       <span></span>
     </button>
     <button class="drawer-scrim" type="button" aria-label="Close report menu"></button>
-    <div class="theme-switch" role="group" aria-label="Color theme">
-      <button type="button" data-set-theme="system" aria-pressed="true" aria-label="System theme" title="System theme">
-        <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,64V176a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V64A16,16,0,0,1,48,48H208A16,16,0,0,1,224,64Z" opacity="0.2"/><path d="M208,40H48A24,24,0,0,0,24,64V176a24,24,0,0,0,24,24H208a24,24,0,0,0,24-24V64A24,24,0,0,0,208,40Zm8,136a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V64a8,8,0,0,1,8-8H208a8,8,0,0,1,8,8Zm-48,48a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,224Z"/></svg>
-      </button>
-      <button type="button" data-set-theme="light" aria-pressed="false" aria-label="Light theme" title="Light theme">
-        <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M184,128a56,56,0,1,1-56-56A56,56,0,0,1,184,128Z" opacity="0.2"/><path d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"/></svg>
-      </button>
-      <button type="button" data-set-theme="dark" aria-pressed="false" aria-label="Dark theme" title="Dark theme">
-        <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M227.89,147.89A96,96,0,1,1,108.11,28.11,96.09,96.09,0,0,0,227.89,147.89Z" opacity="0.2"/><path d="M233.54,142.23a8,8,0,0,0-8-2,88.08,88.08,0,0,1-109.8-109.8,8,8,0,0,0-10-10,104.84,104.84,0,0,0-52.91,37A104,104,0,0,0,136,224a103.09,103.09,0,0,0,62.52-20.88,104.84,104.84,0,0,0,37-52.91A8,8,0,0,0,233.54,142.23ZM188.9,190.34A88,88,0,0,1,65.66,67.11a89,89,0,0,1,31.4-26A106,106,0,0,0,96,56,104.11,104.11,0,0,0,200,160a106,106,0,0,0,14.92-1.06A89,89,0,0,1,188.9,190.34Z"/></svg>
-      </button>
-    </div>
     <div class="sticky-title" aria-hidden="true">
       <div class="sticky-title__inner"><span>{{review.title}}</span></div>
     </div>
+    <button class="back-to-top" type="button" aria-label="Back to top" title="Back to top">
+      <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M200,112H56l72-72Z" opacity="0.2"/><path d="M205.66,106.34l-72-72a8,8,0,0,0-11.32,0l-72,72A8,8,0,0,0,56,120h64v96a8,8,0,0,0,16,0V120h64a8,8,0,0,0,5.66-13.66ZM75.31,104,128,51.31,180.69,104Z"/></svg>
+    </button>
     <div class="page">
       <header class="hero">
         <div>
@@ -839,19 +697,19 @@
 
         <div class="content">
           <section id="thesis">
-            <h2>Thesis</h2>
+            <h2><svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M176,128a48,48,0,1,1-48-48A48,48,0,0,1,176,128Z" opacity="0.2"/><path d="M221.87,83.16A104.1,104.1,0,1,1,195.67,49l22.67-22.68a8,8,0,0,1,11.32,11.32l-96,96a8,8,0,0,1-11.32-11.32l27.72-27.72a40,40,0,1,0,17.87,31.09,8,8,0,1,1,16-.9,56,56,0,1,1-22.38-41.65L184.3,60.39a87.88,87.88,0,1,0,23.13,29.67,8,8,0,0,1,14.44-6.9Z"/></svg>Thesis</h2>
             <p>{{review.thesis.text}}</p>
             {{> evidence review.thesis}}
           </section>
 
           <section id="reading">
-            <h2>Suggested Reading Order</h2>
+            <h2><svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,64V192H104V64Z" opacity="0.2"/><path d="M224,128a8,8,0,0,1-8,8H104a8,8,0,0,1,0-16H216A8,8,0,0,1,224,128ZM104,72H216a8,8,0,0,0,0-16H104a8,8,0,0,0,0,16ZM216,184H104a8,8,0,0,0,0,16H216a8,8,0,0,0,0-16ZM43.58,55.16,48,52.94V104a8,8,0,0,0,16,0V40a8,8,0,0,0-11.58-7.16l-16,8a8,8,0,0,0,7.16,14.32ZM79.77,156.72a23.73,23.73,0,0,0-9.6-15.95,24.86,24.86,0,0,0-34.11,4.7,23.63,23.63,0,0,0-3.57,6.46,8,8,0,1,0,15,5.47,7.84,7.84,0,0,1,1.18-2.13,8.76,8.76,0,0,1,12-1.59A7.91,7.91,0,0,1,63.93,159a7.64,7.64,0,0,1-1.57,5.78,1,1,0,0,0-.08.11L33.59,203.21A8,8,0,0,0,40,216H72a8,8,0,0,0,0-16H56l19.08-25.53A23.47,23.47,0,0,0,79.77,156.72Z"/></svg>Suggested Reading Order</h2>
             <div class="reading-list">
               {{#each review.reading_order}}
               <div class="reading-item">
                 <div>
                   <h3>
-                    {{#each path}}{{> file-link path=this start_line=null end_line=null}}{{#unless @last}}, {{/unless}}{{/each}}
+                    {{#each path}}{{> file-link path=this start_line=null end_line=null}}{{/each}}
                   </h3>
                   <p>{{reason.text}}</p>
                 </div>
@@ -861,7 +719,7 @@
           </section>
 
           <section id="lines">
-            <h2>Evidence Walkthrough</h2>
+            <h2><svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M192,112a80,80,0,1,1-80-80A80,80,0,0,1,192,112Z" opacity="0.2"/><path d="M229.66,218.34,179.6,168.28a88.21,88.21,0,1,0-11.32,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/></svg>Evidence Walkthrough</h2>
             <div class="grid">
               {{#each review.line_map}}
               <article class="mini">
@@ -874,28 +732,20 @@
           </section>
 
           <section id="verification">
-            <h2>Verification Focus</h2>
-            <div class="risk-table">
+            <h2><svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M232,128c0,12.51-17.82,21.95-22.68,33.69-4.68,11.32,1.42,30.65-7.78,39.85s-28.53,3.1-39.85,7.78C150,214.18,140.5,232,128,232s-22-17.82-33.69-22.68c-11.32-4.68-30.65,1.42-39.85-7.78s-3.1-28.53-7.78-39.85C41.82,150,24,140.5,24,128s17.82-22,22.68-33.69C51.36,83,45.26,63.66,54.46,54.46S83,51.36,94.31,46.68C106.05,41.82,115.5,24,128,24S150,41.82,161.69,46.68c11.32,4.68,30.65-1.42,39.85,7.78s3.1,28.53,7.78,39.85C214.18,106.05,232,115.5,232,128Z" opacity="0.2"/><path d="M225.86,102.82c-3.77-3.94-7.67-8-9.14-11.57-1.36-3.27-1.44-8.69-1.52-13.94-.15-9.76-.31-20.82-8-28.51s-18.75-7.85-28.51-8c-5.25-.08-10.67-.16-13.94-1.52-3.56-1.47-7.63-5.37-11.57-9.14C146.28,23.51,138.44,16,128,16s-18.27,7.51-25.18,14.14c-3.94,3.77-8,7.67-11.57,9.14C88,40.64,82.56,40.72,77.31,40.8c-9.76.15-20.82.31-28.51,8S41,67.55,40.8,77.31c-.08,5.25-.16,10.67-1.52,13.94-1.47,3.56-5.37,7.63-9.14,11.57C23.51,109.72,16,117.56,16,128s7.51,18.27,14.14,25.18c3.77,3.94,7.67,8,9.14,11.57,1.36,3.27,1.44,8.69,1.52,13.94.15,9.76.31,20.82,8,28.51s18.75,7.85,28.51,8c5.25.08,10.67.16,13.94,1.52,3.56,1.47,7.63,5.37,11.57,9.14C109.72,232.49,117.56,240,128,240s18.27-7.51,25.18-14.14c3.94-3.77,8-7.67,11.57-9.14,3.27-1.36,8.69-1.44,13.94-1.52,9.76-.15,20.82-.31,28.51-8s7.85-18.75,8-28.51c.08-5.25.16-10.67,1.52-13.94,1.47-3.56,5.37-7.63,9.14-11.57C232.49,146.28,240,138.44,240,128S232.49,109.73,225.86,102.82Zm-11.55,39.29c-4.79,5-9.75,10.17-12.38,16.52-2.52,6.1-2.63,13.07-2.73,19.82-.1,7-.21,14.33-3.32,17.43s-10.39,3.22-17.43,3.32c-6.75.1-13.72.21-19.82,2.73-6.35,2.63-11.52,7.59-16.52,12.38S132,224,128,224s-9.15-4.92-14.11-9.69-10.17-9.75-16.52-12.38c-6.1-2.52-13.07-2.63-19.82-2.73-7-.1-14.33-.21-17.43-3.32s-3.22-10.39-3.32-17.43c-.1-6.75-.21-13.72-2.73-19.82-2.63-6.35-7.59-11.52-12.38-16.52S32,132,32,128s4.92-9.15,9.69-14.11,9.75-10.17,12.38-16.52c2.52-6.1,2.63-13.07,2.73-19.82.1-7,.21-14.33,3.32-17.43S70.51,56.9,77.55,56.8c6.75-.1,13.72-.21,19.82-2.73,6.35-2.63,11.52-7.59,16.52-12.38S124,32,128,32s9.15,4.92,14.11,9.69,10.17,9.75,16.52,12.38c6.1,2.52,13.07,2.63,19.82,2.73,7,.1,14.33.21,17.43,3.32s3.22,10.39,3.32,17.43c.1,6.75.21,13.72,2.73,19.82,2.63,6.35,7.59,11.52,12.38,16.52S224,124,224,128,219.08,137.15,214.31,142.11ZM173.66,98.34a8,8,0,0,1,0,11.32l-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35A8,8,0,0,1,173.66,98.34Z"/></svg>Verification Focus</h2>
+            <div class="claim-table">
               {{#each review.verification}}
-              <div class="risk-row">
-                <strong><span class="tag">{{status}}</span></strong>
-                {{> evidence claim}}
-                <p>{{claim.text}}</p>
-              </div>
+              {{> claim-row label=status warn=false claim=claim}}
               {{/each}}
             </div>
           </section>
 
           <section id="risks">
-            <h2>Key Risks</h2>
+            <h2><svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M215.46,216H40.54C27.92,216,20,202.79,26.13,192.09L113.59,40.22c6.3-11,22.52-11,28.82,0l87.46,151.87C236,202.79,228.08,216,215.46,216Z" opacity="0.2"/><path d="M236.8,188.09,149.35,36.22h0a24.76,24.76,0,0,0-42.7,0L19.2,188.09a23.51,23.51,0,0,0,0,23.72A24.35,24.35,0,0,0,40.55,224h174.9a24.35,24.35,0,0,0,21.33-12.19A23.51,23.51,0,0,0,236.8,188.09ZM222.93,203.8a8.5,8.5,0,0,1-7.48,4.2H40.55a8.5,8.5,0,0,1-7.48-4.2,7.59,7.59,0,0,1,0-7.72L120.52,44.21a8.75,8.75,0,0,1,15,0l87.45,151.87A7.59,7.59,0,0,1,222.93,203.8ZM120,144V104a8,8,0,0,1,16,0v40a8,8,0,0,1-16,0Zm20,36a12,12,0,1,1-12-12A12,12,0,0,1,140,180Z"/></svg>Key Risks</h2>
             {{#if review.risks}}
-            <div class="risk-table">
+            <div class="claim-table">
               {{#each review.risks}}
-              <div class="risk-row">
-                <strong><span class="tag warn">{{level}}</span></strong>
-                {{> evidence claim}}
-                <p>{{claim.text}}</p>
-              </div>
+              {{> claim-row label=level warn=true claim=claim}}
               {{/each}}
             </div>
             {{else}}
@@ -906,7 +756,7 @@
           </section>
 
           <section id="questions">
-            <h2>Questions For The Author</h2>
+            <h2><svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,128a96,96,0,1,1-96-96A96,96,0,0,1,224,128Z" opacity="0.2"/><path d="M140,180a12,12,0,1,1-12-12A12,12,0,0,1,140,180ZM128,72c-22.06,0-40,16.15-40,36v4a8,8,0,0,0,16,0v-4c0-11,10.77-20,24-20s24,9,24,20-10.77,20-24,20a8,8,0,0,0-8,8v8a8,8,0,0,0,16,0v-.72c18.24-3.35,32-17.9,32-35.28C168,88.15,150.06,72,128,72Zm104,56A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128Zm-16,0a88,88,0,1,0-88,88A88.1,88.1,0,0,0,216,128Z"/></svg>Questions For The Author</h2>
             {{#if review.questions}}
             <ul>
               {{#each review.questions}}
@@ -922,7 +772,7 @@
           </section>
 
           <section id="recommendation">
-            <h2>Review Recommendation</h2>
+            <h2><svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M159.46,53l-17.78,83H114.32L96.54,53A24,24,0,0,1,120,24h16A24,24,0,0,1,159.46,53Z" opacity="0.2"/><path d="M224,224a8,8,0,0,1-8,8H40a8,8,0,0,1,0-16H216A8,8,0,0,1,224,224Zm0-80v40a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V144a16,16,0,0,1,16-16h56.43L88.72,54.71A32,32,0,0,1,120,16h16a32,32,0,0,1,31.29,38.71L151.57,128H208A16,16,0,0,1,224,144ZM120.79,128h14.42l16.43-76.65A16,16,0,0,0,136,32H120a16,16,0,0,0-15.65,19.35ZM208,184V144H48v40H208Z"/></svg>Review Recommendation</h2>
             <div class="callout">
               <p>
                 <strong>{{review.recommendation.decision}}.</strong>
@@ -932,25 +782,17 @@
             {{> evidence review.recommendation.summary}}
 
             {{#if review.recommendation.blockers}}
-            <div class="risk-table">
+            <div class="claim-table">
               {{#each review.recommendation.blockers}}
-              <div class="risk-row">
-                <strong><span class="tag warn">Blocker</span></strong>
-                {{> evidence this}}
-                <p>{{text}}</p>
-              </div>
+              {{> claim-row label="Blocker" warn=true claim=this}}
               {{/each}}
             </div>
             {{/if}}
 
             {{#if review.recommendation.follow_ups}}
-            <div class="risk-table">
+            <div class="claim-table">
               {{#each review.recommendation.follow_ups}}
-              <div class="risk-row">
-                <strong><span class="tag">Follow-up</span></strong>
-                {{> evidence this}}
-                <p>{{text}}</p>
-              </div>
+              {{> claim-row label="Follow-up" warn=false claim=this}}
               {{/each}}
             </div>
             {{/if}}
@@ -987,29 +829,12 @@
         if (event.key === "Escape") setMenuOpen(false);
       });
 
-      const themeButtons = document.querySelectorAll(".theme-switch button");
-      const applyThemePreference = (preference) => {
-        if (preference === "light" || preference === "dark") {
-          document.documentElement.dataset.theme = preference;
-        } else {
-          delete document.documentElement.dataset.theme;
-        }
-        themeButtons.forEach((button) => {
-          button.setAttribute("aria-pressed", String(button.dataset.setTheme === preference));
-        });
-        try {
-          if (preference === "system") localStorage.removeItem("theme");
-          else localStorage.setItem("theme", preference);
-        } catch {
-          /* no storage access: theme still applies for this page view */
-        }
+      const scrollToTop = () => {
+        const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
+        window.scrollTo({ top: 0, behavior: reducedMotion ? "auto" : "smooth" });
       };
-
-      themeButtons.forEach((button) => {
-        button.addEventListener("click", () => applyThemePreference(button.dataset.setTheme));
-      });
-
-      applyThemePreference(document.documentElement.dataset.theme ?? "system");
+      stickyTitle.addEventListener("click", scrollToTop);
+      document.querySelector(".back-to-top").addEventListener("click", scrollToTop);
 
       if (heroTitle && stickyTitle) {
         const titleObserver = new IntersectionObserver(([entry]) => {
@@ -1025,7 +850,7 @@
       try {
         const { codeToHtml } = await import("https://esm.sh/shiki@3.0.0");
         const parser = new DOMParser();
-        for (const pre of document.querySelectorAll(".code-card pre")) {
+        for (const pre of document.querySelectorAll("code-card pre")) {
           const rows = [...pre.querySelectorAll(".code-line")];
           if (rows.length === 0) continue;
           const code = rows.map((row) => row.querySelector(".src").textContent).join("\n");

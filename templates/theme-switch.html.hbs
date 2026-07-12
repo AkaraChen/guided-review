@@ -1,0 +1,99 @@
+<style>
+  .theme-switch {
+    position: fixed;
+    /* Vertically centered in the 48px sticky title bar: (48px - 36px pill) / 2 */
+    top: 6px;
+    right: 16px;
+    z-index: 40;
+    display: inline-flex;
+    gap: 2px;
+    border: 1px solid var(--line);
+    border-radius: 999px;
+    background: var(--card);
+    padding: 3px;
+    box-shadow: var(--shadow-toolbar);
+  }
+
+  .theme-switch button {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border: 0;
+    border-radius: 999px;
+    background: transparent;
+    padding: 0;
+    color: var(--muted);
+    cursor: pointer;
+    transition: color 150ms var(--ease), background-color 150ms var(--ease);
+  }
+
+  .theme-switch button svg {
+    width: 15px;
+    height: 15px;
+  }
+
+  .theme-switch button:hover {
+    color: var(--ink);
+  }
+
+  .theme-switch button:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 1px;
+  }
+
+  .theme-switch button[aria-pressed="true"] {
+    background: var(--muted-fill);
+    color: var(--ink);
+  }
+</style>
+<div class="theme-switch" role="group" aria-label="Color theme">
+  <button type="button" data-set-theme="system" aria-pressed="true" aria-label="System theme" title="System theme">
+    <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M224,64V176a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V64A16,16,0,0,1,48,48H208A16,16,0,0,1,224,64Z" opacity="0.2"/><path d="M208,40H48A24,24,0,0,0,24,64V176a24,24,0,0,0,24,24H208a24,24,0,0,0,24-24V64A24,24,0,0,0,208,40Zm8,136a8,8,0,0,1-8,8H48a8,8,0,0,1-8-8V64a8,8,0,0,1,8-8H208a8,8,0,0,1,8,8Zm-48,48a8,8,0,0,1-8,8H96a8,8,0,0,1,0-16h64A8,8,0,0,1,168,224Z"/></svg>
+  </button>
+  <button type="button" data-set-theme="light" aria-pressed="false" aria-label="Light theme" title="Light theme">
+    <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M184,128a56,56,0,1,1-56-56A56,56,0,0,1,184,128Z" opacity="0.2"/><path d="M120,40V16a8,8,0,0,1,16,0V40a8,8,0,0,1-16,0Zm72,88a64,64,0,1,1-64-64A64.07,64.07,0,0,1,192,128Zm-16,0a48,48,0,1,0-48,48A48.05,48.05,0,0,0,176,128ZM58.34,69.66A8,8,0,0,0,69.66,58.34l-16-16A8,8,0,0,0,42.34,53.66Zm0,116.68-16,16a8,8,0,0,0,11.32,11.32l16-16a8,8,0,0,0-11.32-11.32ZM192,72a8,8,0,0,0,5.66-2.34l16-16a8,8,0,0,0-11.32-11.32l-16,16A8,8,0,0,0,192,72Zm5.66,114.34a8,8,0,0,0-11.32,11.32l16,16a8,8,0,0,0,11.32-11.32ZM48,128a8,8,0,0,0-8-8H16a8,8,0,0,0,0,16H40A8,8,0,0,0,48,128Zm80,80a8,8,0,0,0-8,8v24a8,8,0,0,0,16,0V216A8,8,0,0,0,128,208Zm112-88H216a8,8,0,0,0,0,16h24a8,8,0,0,0,0-16Z"/></svg>
+  </button>
+  <button type="button" data-set-theme="dark" aria-pressed="false" aria-label="Dark theme" title="Dark theme">
+    <svg viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M227.89,147.89A96,96,0,1,1,108.11,28.11,96.09,96.09,0,0,0,227.89,147.89Z" opacity="0.2"/><path d="M233.54,142.23a8,8,0,0,0-8-2,88.08,88.08,0,0,1-109.8-109.8,8,8,0,0,0-10-10,104.84,104.84,0,0,0-52.91,37A104,104,0,0,0,136,224a103.09,103.09,0,0,0,62.52-20.88,104.84,104.84,0,0,0,37-52.91A8,8,0,0,0,233.54,142.23ZM188.9,190.34A88,88,0,0,1,65.66,67.11a89,89,0,0,1,31.4-26A106,106,0,0,0,96,56,104.11,104.11,0,0,0,200,160a106,106,0,0,0,14.92-1.06A89,89,0,0,1,188.9,190.34Z"/></svg>
+  </button>
+</div>
+<script>
+  /* Runs at the top of <body>, before content paints: apply the saved theme
+     immediately to avoid a flash; "system" stores nothing and follows the OS
+     via the prefers-color-scheme media query. */
+  try {
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "light" || savedTheme === "dark") {
+      document.documentElement.dataset.theme = savedTheme;
+    }
+  } catch {
+    /* no storage access: stay on system theme */
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    const themeButtons = document.querySelectorAll(".theme-switch button");
+    const applyThemePreference = (preference) => {
+      if (preference === "light" || preference === "dark") {
+        document.documentElement.dataset.theme = preference;
+      } else {
+        delete document.documentElement.dataset.theme;
+      }
+      themeButtons.forEach((button) => {
+        button.setAttribute("aria-pressed", String(button.dataset.setTheme === preference));
+      });
+      try {
+        if (preference === "system") localStorage.removeItem("theme");
+        else localStorage.setItem("theme", preference);
+      } catch {
+        /* no storage access: theme still applies for this page view */
+      }
+    };
+
+    themeButtons.forEach((button) => {
+      button.addEventListener("click", () => applyThemePreference(button.dataset.setTheme));
+    });
+
+    applyThemePreference(document.documentElement.dataset.theme ?? "system");
+  });
+</script>

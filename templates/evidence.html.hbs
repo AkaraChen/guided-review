@@ -1,9 +1,7 @@
 {{#each evidence}}
-<article class="code-card">
-  <header>
-    <h3>{{name}}</h3>
-    {{> file-link path=path start_line=start_line end_line=end_line}}
-  </header>
+<code-card>
+  <h3 slot="name">{{name}}</h3>
+  <span slot="link">{{> file-link path=path start_line=start_line end_line=end_line}}</span>
   <pre data-lang="{{language}}">{{#each lines}}<span class="code-line"><span class="ln">{{number}}</span><span class="src">{{text}}</span></span>{{/each}}</pre>
-</article>
+</code-card>
 {{/each}}

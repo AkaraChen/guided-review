@@ -126,8 +126,8 @@ fn reading_order_links_files_to_their_pull_request_diff() {
         "reading order should link the file to its diff anchor"
     );
     assert!(
-        reading_order.contains("target=\"_blank\""),
-        "file links should open in a new tab"
+        html.contains("target=\"_blank\""),
+        "the file-link component should open links in a new tab"
     );
 }
 
