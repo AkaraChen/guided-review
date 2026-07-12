@@ -53,7 +53,15 @@ your agent reads the diff  ──▶  writes a review payload  ──▶  egr re
 # the egr CLI
 cargo install --git https://github.com/AkaraChen/guided-review guided-review
 
-# the agent skill (drives egr from your coding agent)
+# Claude Code plugin
+claude plugin marketplace add AkaraChen/guided-review
+claude plugin install guided-review@guided-review
+
+# Codex plugin
+codex plugin marketplace add AkaraChen/guided-review
+codex plugin add guided-review@guided-review
+
+# standalone agent skill
 npx skills add akarachen/guided-review
 ```
 

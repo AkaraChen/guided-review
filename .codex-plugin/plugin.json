@@ -1,0 +1,26 @@
+{
+  "name": "guided-review",
+  "version": "0.1.0",
+  "description": "Review pull requests and produce evidence-backed Guided Review artifacts.",
+  "author": {
+    "name": "AkaraChen",
+    "url": "https://github.com/AkaraChen"
+  },
+  "homepage": "https://github.com/AkaraChen/guided-review",
+  "repository": "https://github.com/AkaraChen/guided-review",
+  "license": "MIT",
+  "keywords": ["code-review", "pull-request", "guided-review"],
+  "skills": "./skill/",
+  "interface": {
+    "displayName": "Guided Review",
+    "shortDescription": "Create evidence-backed pull request review guides",
+    "longDescription": "Review pull requests, reconstruct change flows, and render evidence-backed Guided Review artifacts with risk and verification focus.",
+    "developerName": "AkaraChen",
+    "category": "Developer Tools",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/AkaraChen/guided-review",
+    "defaultPrompt": [
+      "Review this pull request and produce an evidence-backed Guided Review artifact."
+    ]
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "guided-review",
+  "description": "Evidence-backed pull request review workflows.",
+  "owner": {
+    "name": "AkaraChen"
+  },
+  "plugins": [
+    {
+      "name": "guided-review",
+      "source": "./",
+      "description": "Review pull requests and produce evidence-backed Guided Review artifacts."
+    }
+  ]
+}

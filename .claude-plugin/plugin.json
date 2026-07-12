@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "guided-review",
+  "displayName": "Guided Review",
+  "version": "0.1.0",
+  "description": "Review pull requests and produce evidence-backed Guided Review artifacts.",
+  "author": {
+    "name": "AkaraChen",
+    "url": "https://github.com/AkaraChen"
+  },
+  "homepage": "https://github.com/AkaraChen/guided-review",
+  "repository": "https://github.com/AkaraChen/guided-review",
+  "license": "MIT",
+  "keywords": ["code-review", "pull-request", "guided-review"],
+  "skills": "./skill/"
+}

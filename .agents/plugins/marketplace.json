@@ -1,0 +1,20 @@
+{
+  "name": "guided-review",
+  "interface": {
+    "displayName": "Guided Review"
+  },
+  "plugins": [
+    {
+      "name": "guided-review",
+      "source": {
+        "source": "local",
+        "path": "./"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Developer Tools"
+    }
+  ]
+}
