@@ -30,8 +30,7 @@ dev:
     cargo watch \
       --quiet \
       --postpone \
-      --watch templates \
-      --watch src \
+      --watch crates \
       --watch "${review_file}" \
       -- "${render[@]}" &
     watcher_pid=$!

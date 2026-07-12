@@ -2,7 +2,7 @@ use std::path::PathBuf;
 
 use clap::{Args, Parser, Subcommand};
 
-use crate::PullRequestRef;
+use guided_review_core::{PullRequestRef, review_schema_help};
 
 #[derive(Debug, Parser)]
 #[command(
@@ -23,6 +23,7 @@ pub enum Command {
 }
 
 #[derive(Debug, Args)]
+#[command(after_help = review_schema_help())]
 pub struct GenerateArgs {
     /// GitHub pull request in OWNER/REPO#NUMBER format.
     #[arg(value_name = "OWNER/REPO#NUMBER")]
@@ -75,6 +76,16 @@ mod tests {
         let Command::Generate(args) = cli.command;
         assert_eq!(args.review.to_string_lossy(), "-");
         assert!(args.output.is_none());
+    }
+
+    #[test]
+    fn long_help_documents_the_review_schema() {
+        for flag in ["-h", "--help"] {
+            let error = Cli::try_parse_from(["guided-review", "generate", flag])
+                .expect_err("help flag exits with a help message");
+
+            assert!(error.to_string().contains("Review JSON schema"));
+        }
     }
 
     #[test]

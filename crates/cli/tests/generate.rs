@@ -167,5 +167,5 @@ fn escapes_review_copy_before_rendering_html() {
 
 #[test]
 fn fixed_dev_preview_payload_remains_valid() {
-    parse_review(include_str!("../examples/review.json")).expect("valid example review body");
+    parse_review(include_str!("../../../examples/review.json")).expect("valid example review body");
 }

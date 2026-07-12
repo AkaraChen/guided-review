@@ -1,7 +1,4 @@
 mod cli;
-mod pull_request;
-mod render;
-mod review;
 
 use std::{
     fs,
@@ -12,9 +9,9 @@ use std::{
 use anyhow::{Context, Result};
 
 pub use cli::{Cli, Command, GenerateArgs};
-pub use pull_request::PullRequestRef;
-pub use render::{RenderReviewError, render_review};
-pub use review::{GuidedReview, ReviewInputError, parse_review};
+pub use guided_review_core::{
+    GuidedReview, PullRequestRef, RenderReviewError, ReviewInputError, parse_review, render_review,
+};
 
 pub fn execute(cli: Cli) -> Result<PathBuf> {
     match cli.command {

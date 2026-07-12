@@ -3,7 +3,7 @@ use serde::Serialize;
 use sha2::{Digest, Sha256};
 use thiserror::Error;
 
-use crate::{GuidedReview, PullRequestRef};
+use crate::{pull_request::PullRequestRef, review::GuidedReview};
 
 const REVIEW_TEMPLATE: &str = include_str!("../templates/guided-review.html.hbs");
 const EVIDENCE_PARTIAL: &str = include_str!("../templates/evidence.html.hbs");

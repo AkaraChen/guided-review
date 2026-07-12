@@ -1,67 +1,97 @@
 use garde::Validate;
+use schemars::JsonSchema;
 use serde::{
     Deserialize, Deserializer, Serialize,
     ser::{SerializeStruct, Serializer},
 };
 use thiserror::Error;
 
-#[derive(Debug, Deserialize, Serialize, Validate)]
+/// A complete guided review of one pull request. Every claim must cite at
+/// least one code excerpt as evidence, and text fields must not be blank.
+#[derive(Debug, Deserialize, JsonSchema, Serialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct GuidedReview {
+    /// Review headline shown at the top of the page.
     #[garde(custom(non_blank))]
     pub title: String,
+    /// Pull request statistics displayed in the page header.
     #[garde(dive)]
     pub metadata: PullRequestMetadata,
+    /// One-paragraph statement of what the change accomplishes.
     #[garde(dive)]
     pub thesis: SupportedClaim,
+    /// Suggested order in which a reviewer should read the changed files.
+    #[schemars(length(min = 1))]
     #[garde(dive, length(min = 1))]
     pub reading_order: Vec<ReadingStep>,
+    /// Claims organized by review line (visible behavior, data, state, ...).
+    #[schemars(length(min = 1))]
     #[garde(dive, length(min = 1))]
     pub line_map: Vec<LineMapEntry>,
+    /// Identified risks, from blockers down to follow-ups.
     #[serde(default)]
     #[garde(dive)]
     pub risks: Vec<Risk>,
+    /// What has been proven, partially proven, or remains unproven.
+    #[schemars(length(min = 1))]
     #[garde(dive, length(min = 1))]
     pub verification: Vec<Verification>,
+    /// Open questions for the pull request author.
     #[serde(default)]
     #[garde(dive)]
     pub questions: Vec<Question>,
+    /// The final review decision with its justification.
     #[garde(dive)]
     pub recommendation: Recommendation,
 }
 
-#[derive(Debug, Deserialize, Serialize, Validate)]
+/// Display-only pull request statistics, already formatted for the header.
+#[derive(Debug, Deserialize, JsonSchema, Serialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct PullRequestMetadata {
+    /// Changed-file count, e.g. "60 changed".
     #[garde(custom(non_blank))]
     pub files: String,
+    /// Added-line count, e.g. "+4,835".
     #[garde(custom(non_blank))]
     pub additions: String,
+    /// Deleted-line count, e.g. "-217".
     #[garde(custom(non_blank))]
     pub deletions: String,
+    /// Test outcome, e.g. "378 passed".
     #[garde(custom(non_blank))]
     pub tests: String,
+    /// Merge state, e.g. "CLEAN".
     #[garde(custom(non_blank))]
     pub merge: String,
 }
 
-#[derive(Debug, Deserialize, Serialize, Validate)]
+/// A reviewer statement backed by at least one cited code excerpt.
+#[derive(Debug, Deserialize, JsonSchema, Serialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct SupportedClaim {
+    /// The statement itself, one or two sentences.
     #[garde(custom(non_blank))]
     pub text: String,
+    /// How the claim was established.
     #[garde(skip)]
     pub basis: ClaimBasis,
+    /// Code excerpts that support the claim.
+    #[schemars(length(min = 1))]
     #[garde(dive, length(min = 1))]
     pub evidence: Vec<CodeExcerpt>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Validate)]
+/// One stop in the suggested reading order.
+#[derive(Debug, Deserialize, JsonSchema, Serialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct ReadingStep {
+    /// Repository-relative file path, or a list of paths read together.
     #[serde(deserialize_with = "path_or_paths")]
+    #[schemars(schema_with = "path_or_paths_schema")]
     #[garde(length(min = 1), inner(custom(non_blank)))]
     pub path: Vec<String>,
+    /// Why the reviewer should read this file at this point.
     #[garde(dive)]
     pub reason: SupportedClaim,
 }
@@ -84,76 +114,116 @@ where
     })
 }
 
-#[derive(Debug, Deserialize, Serialize, Validate)]
+/// Schema counterpart of [`path_or_paths`]: one path or a non-empty list.
+fn path_or_paths_schema(_generator: &mut schemars::SchemaGenerator) -> schemars::Schema {
+    schemars::json_schema!({
+        "anyOf": [
+            { "type": "string", "minLength": 1 },
+            { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1 }
+        ]
+    })
+}
+
+/// A claim filed under one review line.
+#[derive(Debug, Deserialize, JsonSchema, Serialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct LineMapEntry {
+    /// The review line this claim belongs to.
     #[garde(skip)]
     pub line: ReviewLine,
+    /// What the review asserts about this line.
     #[garde(dive)]
     pub claim: SupportedClaim,
 }
 
-#[derive(Debug, Deserialize, Serialize, Validate)]
+/// A risk identified in the change.
+#[derive(Debug, Deserialize, JsonSchema, Serialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct Risk {
+    /// Severity of the risk.
     #[garde(skip)]
     pub level: RiskLevel,
+    /// Short label for the risk.
     #[garde(custom(non_blank))]
     pub title: String,
+    /// What the risk is and why it matters.
     #[garde(dive)]
     pub claim: SupportedClaim,
 }
 
-#[derive(Debug, Deserialize, Serialize, Validate)]
+/// One verification item: something the review checked or could not check.
+#[derive(Debug, Deserialize, JsonSchema, Serialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct Verification {
+    /// How far the item has been proven.
     #[garde(skip)]
     pub status: VerificationStatus,
+    /// Short label for the verification item.
     #[garde(custom(non_blank))]
     pub title: String,
+    /// What was verified, or what evidence is missing.
     #[garde(dive)]
     pub claim: SupportedClaim,
 }
 
-#[derive(Debug, Deserialize, Serialize, Validate)]
+/// An open question for the pull request author.
+#[derive(Debug, Deserialize, JsonSchema, Serialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct Question {
+    /// The question itself.
     #[garde(custom(non_blank))]
     pub text: String,
+    /// Code excerpts that prompted the question.
+    #[schemars(length(min = 1))]
     #[garde(dive, length(min = 1))]
     pub evidence: Vec<CodeExcerpt>,
 }
 
-#[derive(Debug, Deserialize, Serialize, Validate)]
+/// The final review decision. An `approve` decision cannot include blockers.
+#[derive(Debug, Deserialize, JsonSchema, Serialize, Validate)]
 #[serde(deny_unknown_fields)]
 #[garde(custom(validate_recommendation))]
 pub struct Recommendation {
+    /// The verdict on the pull request.
     #[garde(skip)]
     pub decision: ReviewDecision,
+    /// Justification for the decision.
     #[garde(dive)]
     pub summary: SupportedClaim,
+    /// Issues that must be resolved before merging.
     #[serde(default)]
     #[garde(dive)]
     pub blockers: Vec<SupportedClaim>,
+    /// Improvements that can land after this pull request.
     #[serde(default)]
     #[garde(dive)]
     pub follow_ups: Vec<SupportedClaim>,
 }
 
-#[derive(Debug, Deserialize, Validate)]
+/// A cited code excerpt. `code` must contain exactly
+/// `end_line - start_line + 1` lines.
+#[derive(Debug, Deserialize, JsonSchema, Validate)]
 #[serde(deny_unknown_fields)]
 #[garde(custom(validate_excerpt))]
 pub struct CodeExcerpt {
+    /// Short caption naming what the excerpt shows.
     #[garde(custom(non_blank))]
     pub name: String,
+    /// Repository-relative path of the excerpted file.
     #[garde(custom(non_blank))]
     pub path: String,
+    /// First excerpted line, 1-indexed.
+    #[schemars(range(min = 1))]
     #[garde(range(min = 1))]
     pub start_line: u32,
+    /// Last excerpted line, inclusive; must be >= start_line.
+    #[schemars(range(min = 1))]
     #[garde(range(min = 1))]
     pub end_line: u32,
+    /// Syntax-highlighting language tag, e.g. "rust" or "typescript".
     #[garde(custom(non_blank))]
     pub language: String,
+    /// The excerpted source, one line per range line.
     #[garde(custom(non_blank))]
     pub code: String,
 }
@@ -190,7 +260,9 @@ struct CodeLine<'a> {
     text: &'a str,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, JsonSchema, PartialEq, Serialize)]
+/// How a claim was established: read directly at the cited site (observed)
+/// or concluded from several sites together (synthesis).
 pub enum ClaimBasis {
     #[serde(rename(serialize = "Observed", deserialize = "observed"))]
     Observed,
@@ -198,7 +270,9 @@ pub enum ClaimBasis {
     Synthesis,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, JsonSchema, PartialEq, Serialize)]
+/// The review dimension a line-map claim addresses, from user-visible
+/// behavior down to hidden coupling and degradation.
 pub enum ReviewLine {
     #[serde(rename(serialize = "Visible line", deserialize = "visible"))]
     Visible,
@@ -220,7 +294,9 @@ pub enum ReviewLine {
     Degradation,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, JsonSchema, PartialEq, Serialize)]
+/// Risk severity: blocker (must fix before merge), should_fix (fix in this
+/// pull request), or follow_up (may land later).
 pub enum RiskLevel {
     #[serde(rename(serialize = "Blocker", deserialize = "blocker"))]
     Blocker,
@@ -230,7 +306,8 @@ pub enum RiskLevel {
     FollowUp,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, JsonSchema, PartialEq, Serialize)]
+/// How far a verification item has been proven by tests or evidence.
 pub enum VerificationStatus {
     #[serde(rename(serialize = "Verified", deserialize = "verified"))]
     Verified,
@@ -240,7 +317,8 @@ pub enum VerificationStatus {
     Unproven,
 }
 
-#[derive(Clone, Copy, Debug, Deserialize, Eq, PartialEq, Serialize)]
+#[derive(Clone, Copy, Debug, Deserialize, Eq, JsonSchema, PartialEq, Serialize)]
+/// The overall verdict on the pull request.
 pub enum ReviewDecision {
     #[serde(rename(serialize = "Approve", deserialize = "approve"))]
     Approve,
@@ -248,6 +326,16 @@ pub enum ReviewDecision {
     RequestChanges,
     #[serde(rename(serialize = "Comment only", deserialize = "comment_only"))]
     CommentOnly,
+}
+
+/// JSON Schema for the review payload, generated from the types above and
+/// rendered into `generate --help`.
+pub fn review_schema_help() -> String {
+    let schema = schemars::schema_for!(GuidedReview);
+    format!(
+        "Review JSON schema (generated from the Rust types):\n{}",
+        serde_json::to_string_pretty(schema.as_value()).expect("schema serializes to JSON")
+    )
 }
 
 pub fn parse_review(source: &str) -> Result<GuidedReview, ReviewInputError> {
@@ -356,6 +444,16 @@ mod tests {
                 "follow_ups": []
             }
         })
+    }
+
+    #[test]
+    fn schema_help_documents_input_enum_values() {
+        let help = super::review_schema_help();
+
+        // Enums rename differently for input and output; the schema must
+        // document what `parse_review` accepts, not what templates receive.
+        assert!(help.contains("\"observed\""));
+        assert!(!help.contains("\"Observed\""));
     }
 
     #[test]

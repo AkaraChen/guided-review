@@ -1,13 +1,18 @@
-[package]
-name = "guided-review"
+[workspace]
+resolver = "3"
+members = ["crates/cli", "crates/core"]
+
+[workspace.package]
 version = "0.1.0"
 edition = "2024"
 
-[dependencies]
+[workspace.dependencies]
+guided-review-core = { path = "crates/core" }
 anyhow = "1.0.103"
 clap = { version = "4.6.1", features = ["derive"] }
 garde = { version = "0.23.0", features = ["derive"] }
 handlebars = "6.4.2"
+schemars = "1.2.1"
 serde = { version = "1.0.228", features = ["derive"] }
 serde_json = "1.0.150"
 sha2 = "0.11.0"

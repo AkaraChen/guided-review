@@ -1,0 +1,12 @@
+[package]
+name = "guided-review"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+guided-review-core.workspace = true
+anyhow.workspace = true
+clap.workspace = true
+
+[dev-dependencies]
+serde_json.workspace = true

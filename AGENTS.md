@@ -2,18 +2,21 @@
 
 ## Project Structure & Module Organization
 
-This is a Rust 2024 CLI. `src/main.rs` is the thin process entry point and
-`src/lib.rs` coordinates input, rendering, and output. Keep command parsing in
-`src/cli.rs`, GitHub PR reference parsing in `src/pull_request.rs`, review JSON
-types and validation in `src/review.rs`, and Handlebars setup in
-`src/render.rs`. Templates live in `templates/`: page markup in `.hbs` files and
+This is a Rust 2024 Cargo workspace with two crates under `crates/`.
+`crates/core` (package `guided-review-core`) owns the domain: GitHub PR
+reference parsing in `src/pull_request.rs`, review JSON types, validation, and
+the generated schema help in `src/review.rs`, and Handlebars setup in
+`src/render.rs`. `crates/cli` (package `guided-review`, the binary) keeps
+command parsing in `src/cli.rs`, coordinates input, rendering, and output in
+`src/lib.rs`, and has the thin process entry point in `src/main.rs`. Templates
+live in `crates/core/templates/`: page markup in `.hbs` files and
 web components in sibling `.js` files. Repeated components (status-badge,
 file-link, claim-card, code-card) pair a slim SSR partial with a `.js` custom
 element that owns its styles and guards `customElements.define`; single-use
 components (theme-switch, page-header) are one `.hbs` file with inline
 `<style>`/`<script>`. `examples/review.json` is the fixed development payload.
-Integration tests belong in `tests/`. Generated files and build artifacts stay
-under `target/`.
+Integration tests belong in `crates/cli/tests/`. Generated files and build
+artifacts stay under `target/`.
 
 ## Build, Test, and Development Commands
 
@@ -24,9 +27,8 @@ under `target/`.
 - `cargo fmt --all --check`: verify Rust formatting.
 - `cargo clippy --all-targets --all-features -- -D warnings`: enforce lint-clean
   code.
-- `just dev`: render the fixed example, watch `src/`, `templates/`, and the
-  example JSON, then serve a live-reloading preview. It requires `cargo-watch`
-  and `pnpm`.
+- `just dev`: render the fixed example, watch `crates/` and the example JSON,
+  then serve a live-reloading preview. It requires `cargo-watch` and `pnpm`.
 
 ## Coding Style & Naming Conventions
 
