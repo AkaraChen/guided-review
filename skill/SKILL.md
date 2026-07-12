@@ -147,17 +147,21 @@ serves it. Do not hand-write the HTML.
 
 1. Use `egr` if installed; otherwise install it once with
    `cargo install --path crates/cli` from this repository.
-2. Create all egr working files — review JSON, generated HTML, and the served
-   `out/` directory — under a temp directory (for example
-   `$(mktemp -d)/guided-review`), never inside the repository under review.
+2. Create all review-related files — review JSON, generated HTML, and the
+   served `out/` directory — under a fresh temp directory, never inside the
+   repository under review. Use `mktemp -d` on macOS/Linux; on Windows use a
+   new subdirectory of `$env:TEMP` (PowerShell), for example
+   `New-Item -ItemType Directory "$env:TEMP\guided-review-$PID"`.
 3. Read the payload contract from `egr generate -h`: it prints the JSON
    Schema, generated from the Rust types. Every claim needs `evidence` code
    excerpts whose `code` contains exactly `end_line - start_line + 1` real
    lines from the diff. `examples/review.json` is a complete sample payload.
-4. Write the review as JSON, then render one page per PR:
+4. Write the review as JSON, then render one page per PR. Name the generated
+   HTML `index.html` by default so the served directory root opens the review
+   directly:
 
 ```sh
-egr generate OWNER/REPO#NUMBER --review review.json --output out/OWNER-REPO-NUMBER.html
+egr generate OWNER/REPO#NUMBER --review review.json --output out/index.html
 ```
 
 5. Publish the result. In a Multica workspace, just post the HTML file and do
