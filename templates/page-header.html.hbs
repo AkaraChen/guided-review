@@ -9,7 +9,16 @@
   .page-header__inner {
     width: min(1180px, 100%);
     margin: 0 auto;
-    padding: 40px 20px 24px;
+    padding: 20px 20px 0;
+  }
+
+  /* Expanded state lives on a card like every section below */
+  .page-header__card {
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--card);
+    padding: 28px;
+    box-shadow: var(--shadow-hairline);
   }
 
   page-header h1 {
@@ -82,8 +91,8 @@
   }
 
   @media (max-width: 860px) {
-    .page-header__inner {
-      padding-top: 24px;
+    /* keep the title clear of the floating hamburger */
+    .page-header__card {
       padding-left: 76px;
     }
 
@@ -94,6 +103,7 @@
 </style>
 <page-header>
   <div class="page-header__inner">
+    <div class="page-header__card">
     <h1>{{review.title}}</h1>
     <aside class="meta" aria-label="Pull request metadata">
       <span class="fact">
@@ -125,6 +135,7 @@
         <span>{{review.recommendation.decision}}</span>
       </span>
     </aside>
+    </div>
   </div>
   <div class="page-header__bar" aria-hidden="true">
     <div class="page-header__bar-inner"><span>{{review.title}}</span></div>
