@@ -1,4 +1,5 @@
 mod cli;
+mod serve;
 
 use std::{
     fs,
@@ -8,14 +9,19 @@ use std::{
 
 use anyhow::{Context, Result};
 
-pub use cli::{Cli, Command, GenerateArgs};
+pub use cli::{Cli, Command, GenerateArgs, ServeArgs};
 pub use guided_review_core::{
     GuidedReview, PullRequestRef, RenderReviewError, ReviewInputError, parse_review, render_review,
 };
 
-pub fn execute(cli: Cli) -> Result<PathBuf> {
+pub fn execute(cli: Cli) -> Result<()> {
     match cli.command {
-        Command::Generate(args) => generate(args),
+        Command::Generate(args) => {
+            let output = generate(args)?;
+            println!("{}", output.display());
+            Ok(())
+        }
+        Command::Serve(args) => serve::serve(&args.dir, args.port),
     }
 }
 

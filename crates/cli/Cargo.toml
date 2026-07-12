@@ -3,6 +3,10 @@ name = "guided-review"
 version.workspace = true
 edition.workspace = true
 
+[[bin]]
+name = "egr"
+path = "src/main.rs"
+
 [dependencies]
 guided-review-core.workspace = true
 anyhow.workspace = true
