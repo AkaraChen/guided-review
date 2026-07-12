@@ -8,6 +8,16 @@
 
 ![渲染后的 Guided Review 页面](./docs/screenshot.png)
 
+## 安装
+
+```console
+# egr 命令行工具
+cargo install --git https://github.com/AkaraChen/guided-review guided-review
+
+# Agent 技能（让你的编码 Agent 驱动 egr）
+npx skills add akarachen/guided-review
+```
+
 ---
 
 ## 为什么需要 Guided Review？
@@ -81,7 +91,6 @@ Guided Review 适合这样的工程师：
 ## 快速开始
 
 ```console
-cargo install --git https://github.com/AkaraChen/guided-review guided-review   # 安装 `egr` 二进制
 egr generate -h                   # 打印评审 JSON Schema
 egr generate owner/repo#123 --review review.json --output out/index.html
 egr serve out                     # 绑定 127.0.0.1 并打印 URL
