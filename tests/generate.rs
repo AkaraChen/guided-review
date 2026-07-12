@@ -44,6 +44,7 @@ fn synthetic_review() -> GuidedReview {
         "risks": [],
         "verification": [{
             "status": "verified",
+            "title": "Focused behavior test",
             "claim": supported_claim("The focused test proves the behavior.")
         }],
         "questions": [],
@@ -129,6 +130,19 @@ fn reading_order_links_files_to_their_pull_request_diff() {
         html.contains("target=\"_blank\""),
         "the file-link component should open links in a new tab"
     );
+}
+
+#[test]
+fn claim_card_sections_render_their_own_code_lines() {
+    let html = render_synthetic_review();
+
+    // Guards against partial parameters (like the claim summary) shadowing the
+    // evidence line fields inside nested partials.
+    let lines = section_between(&html, "lines", "verification");
+    assert!(lines.contains("<span class=\"src\">let first"));
+    let verification = section_between(&html, "verification", "risks");
+    assert!(verification.contains("<span class=\"src\">let first"));
+    assert!(!verification.contains("<span class=\"src\">The focused test proves"));
 }
 
 #[test]

@@ -8,8 +8,9 @@ use crate::{GuidedReview, PullRequestRef};
 const REVIEW_TEMPLATE: &str = include_str!("../templates/guided-review.html.hbs");
 const EVIDENCE_PARTIAL: &str = include_str!("../templates/evidence.html.hbs");
 const FILE_LINK_PARTIAL: &str = include_str!("../templates/file-link.html.hbs");
-const CLAIM_ROW_PARTIAL: &str = include_str!("../templates/claim-row.html.hbs");
+const CLAIM_CARD_PARTIAL: &str = include_str!("../templates/claim-card.html.hbs");
 const THEME_SWITCH_PARTIAL: &str = include_str!("../templates/theme-switch.html.hbs");
+const PAGE_HEADER_PARTIAL: &str = include_str!("../templates/page-header.html.hbs");
 
 /// Repeated components are web components: each partial renders a custom
 /// element whose class, styles, and registry guard live in a sibling .js file,
@@ -17,8 +18,9 @@ const THEME_SWITCH_PARTIAL: &str = include_str!("../templates/theme-switch.html.
 /// Components rendered a single time (for example theme-switch) instead inline
 /// their own <style>/<script> tags directly in their template.
 const COMPONENT_SCRIPTS: &[&str] = &[
+    include_str!("../templates/status-badge.js"),
     include_str!("../templates/file-link.js"),
-    include_str!("../templates/claim-row.js"),
+    include_str!("../templates/claim-card.js"),
     include_str!("../templates/code-card.js"),
 ];
 
@@ -47,6 +49,7 @@ handlebars_helper!(diff_anchor: |path: String| {
 });
 
 handlebars_helper!(short_path: |path: String| shorten_path(&path));
+handlebars_helper!(inc: |value: u64| value + 1);
 
 /// Middle-elides a long path (`src/…/ai/runner.ts`), always keeping the file name.
 const SHORT_PATH_MAX_CHARS: usize = 40;
@@ -75,11 +78,13 @@ pub fn render_review(
     handlebars.set_strict_mode(true);
     handlebars.register_helper("diff_anchor", Box::new(diff_anchor));
     handlebars.register_helper("short_path", Box::new(short_path));
+    handlebars.register_helper("inc", Box::new(inc));
     handlebars.register_template_string("guided-review", REVIEW_TEMPLATE)?;
     handlebars.register_partial("evidence", EVIDENCE_PARTIAL)?;
     handlebars.register_partial("file-link", FILE_LINK_PARTIAL)?;
-    handlebars.register_partial("claim-row", CLAIM_ROW_PARTIAL)?;
+    handlebars.register_partial("claim-card", CLAIM_CARD_PARTIAL)?;
     handlebars.register_partial("theme-switch", THEME_SWITCH_PARTIAL)?;
+    handlebars.register_partial("page-header", PAGE_HEADER_PARTIAL)?;
     handlebars.register_partial(
         "component-scripts",
         format!("<script>\n{}</script>", COMPONENT_SCRIPTS.join("\n")),

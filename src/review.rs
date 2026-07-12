@@ -98,6 +98,8 @@ pub struct LineMapEntry {
 pub struct Risk {
     #[garde(skip)]
     pub level: RiskLevel,
+    #[garde(custom(non_blank))]
+    pub title: String,
     #[garde(dive)]
     pub claim: SupportedClaim,
 }
@@ -107,6 +109,8 @@ pub struct Risk {
 pub struct Verification {
     #[garde(skip)]
     pub status: VerificationStatus,
+    #[garde(custom(non_blank))]
+    pub title: String,
     #[garde(dive)]
     pub claim: SupportedClaim,
 }
@@ -341,6 +345,7 @@ mod tests {
             "risks": [],
             "verification": [{
                 "status": "verified",
+                "title": "Verification title",
                 "claim": supported_claim("Verification")
             }],
             "questions": [],
