@@ -131,6 +131,9 @@ pub struct LineMapEntry {
     /// The review line this claim belongs to.
     #[garde(skip)]
     pub line: ReviewLine,
+    /// Short label for the claim.
+    #[garde(custom(non_blank))]
+    pub title: String,
     /// What the review asserts about this line.
     #[garde(dive)]
     pub claim: SupportedClaim,
@@ -170,6 +173,9 @@ pub struct Verification {
 #[derive(Debug, Deserialize, JsonSchema, Serialize, Validate)]
 #[serde(deny_unknown_fields)]
 pub struct Question {
+    /// Short label for the question.
+    #[garde(custom(non_blank))]
+    pub title: String,
     /// The question itself.
     #[garde(custom(non_blank))]
     pub text: String,
@@ -428,6 +434,7 @@ mod tests {
             }],
             "line_map": [{
                 "line": "visible",
+                "title": "Visible behavior",
                 "claim": supported_claim("Visible behavior")
             }],
             "risks": [],

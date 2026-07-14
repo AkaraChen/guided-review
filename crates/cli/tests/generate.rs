@@ -39,6 +39,7 @@ fn synthetic_review() -> GuidedReview {
         }],
         "line_map": [{
             "line": "visible",
+            "title": "User-visible behavior",
             "claim": supported_claim("Users can observe the new behavior.")
         }],
         "risks": [],
@@ -47,7 +48,11 @@ fn synthetic_review() -> GuidedReview {
             "title": "Focused behavior test",
             "claim": supported_claim("The focused test proves the behavior.")
         }],
-        "questions": [],
+        "questions": [{
+            "title": "Author intent",
+            "text": "Should this behavior apply to every request?",
+            "evidence": supported_claim("Question evidence")["evidence"].clone()
+        }],
         "recommendation": {
             "decision": "comment_only",
             "summary": supported_claim("The change is ready for human review."),
@@ -143,6 +148,49 @@ fn claim_card_sections_render_their_own_code_lines() {
     let verification = section_between(&html, "verification", "risks");
     assert!(verification.contains("<span class=\"src\">let first"));
     assert!(!verification.contains("<span class=\"src\">The focused test proves"));
+}
+
+#[test]
+fn evidence_and_questions_render_titles_and_descriptions_without_question_code() {
+    let html = render_synthetic_review();
+
+    let lines = section_between(&html, "lines", "verification");
+    assert!(lines.contains("User-visible behavior"));
+    assert!(lines.contains("Users can observe the new behavior."));
+
+    let questions = section_between(&html, "questions", "recommendation");
+    assert!(questions.contains("Author intent"));
+    assert!(questions.contains("Should this behavior apply to every request?"));
+    assert!(!questions.contains("code-card"));
+}
+
+#[test]
+fn renders_decision_tone_before_title_and_on_final_recommendation() {
+    let html = render_synthetic_review();
+    let header = html
+        .split_once("<page-header>")
+        .expect("page header")
+        .1
+        .split_once("</page-header>")
+        .expect("page header end")
+        .0;
+
+    let recommendation_index = header
+        .find("page-header__recommendation")
+        .expect("header recommendation");
+    let title_index = header.find("<h1>A review title</h1>").expect("title");
+    let metadata_index = header.find("<aside class=\"meta\"").expect("metadata");
+
+    assert!(recommendation_index < title_index);
+    assert!(title_index < metadata_index);
+    assert!(header.contains("data-decision=\"Comment only\""));
+
+    let recommendation = html
+        .split_once("<section id=\"recommendation\">")
+        .expect("recommendation section")
+        .1;
+    assert!(recommendation.contains("class=\"callout recommendation-tone\""));
+    assert!(recommendation.contains("data-decision=\"Comment only\""));
 }
 
 #[test]

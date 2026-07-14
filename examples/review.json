@@ -68,6 +68,7 @@
   "line_map": [
     {
       "line": "visible",
+      "title": "Selection copy feedback",
       "claim": {
         "text": "Any non-empty terminal selection is written to the clipboard and answered with a closable \"Text copied\" success toast; the keyboard copy shortcut now shows the same toast because it calls the same helper.",
         "basis": "observed",
@@ -85,6 +86,7 @@
     },
     {
       "line": "state",
+      "title": "Per-terminal selection dedup",
       "claim": {
         "text": "lastCopiedSelection is per-terminal-instance effect state that suppresses copying the identical selection twice; it resets when the selection is cleared, so reselecting the same text copies and toasts again.",
         "basis": "observed",
@@ -110,6 +112,7 @@
     },
     {
       "line": "hidden",
+      "title": "Drag events can copy intermediate selections",
       "claim": {
         "text": "The PR description says selections are copied \"after pointer release\", but the code copies on every onSelectionChange event with no pointer gating. xterm emits selection changes while a drag extends the selection, so each intermediate selection (\"h\", \"he\", \"hel\", ...) can trigger its own clipboard write and toast; the dedup only stops exact repeats, not growing prefixes.",
         "basis": "synthesis",
@@ -127,6 +130,7 @@
     },
     {
       "line": "error",
+      "title": "Failed writes suppress retries",
       "claim": {
         "text": "A failed clipboard write is swallowed by an empty catch, and lastCopiedSelection is set before the write resolves, so after a failure the same selection is treated as already copied: no error surfaced, and retrying via the keyboard shortcut is a silent no-op until the selection is cleared.",
         "basis": "observed",
@@ -144,6 +148,7 @@
     },
     {
       "line": "test",
+      "title": "Unit coverage misses drag and failure paths",
       "claim": {
         "text": "Four unit tests prove the listener wiring, the toast payload, the empty-selection guard, and the exact-repeat dedup through a hand-written xterm mock. They fire selection changes one at a time, so they do not prove drag-time behavior or the failure path.",
         "basis": "observed",
@@ -161,6 +166,7 @@
     },
     {
       "line": "complexity",
+      "title": "Terminal mock duplicates the module surface",
       "claim": {
         "text": "The test file re-implements the terminal's entire ./lib surface as a mock, so any signature change in that module breaks this test file even when select-to-copy behavior is unaffected.",
         "basis": "observed",
@@ -291,6 +297,7 @@
   ],
   "questions": [
     {
+      "title": "Verify real drag behavior",
       "text": "Was a real mouse drag verified manually? The description says copy happens \"after pointer release\", but the code copies on each onSelectionChange, and xterm can emit those while the drag is still extending the selection.",
       "evidence": [
         {
