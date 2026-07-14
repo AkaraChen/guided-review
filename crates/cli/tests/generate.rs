@@ -165,7 +165,7 @@ fn evidence_and_questions_render_titles_and_descriptions_without_question_code()
 }
 
 #[test]
-fn renders_primary_recommendation_between_title_and_metadata() {
+fn renders_decision_tone_before_title_and_on_final_recommendation() {
     let html = render_synthetic_review();
     let header = html
         .split_once("<page-header>")
@@ -175,15 +175,22 @@ fn renders_primary_recommendation_between_title_and_metadata() {
         .expect("page header end")
         .0;
 
-    let title_index = header.find("<h1>A review title</h1>").expect("title");
     let recommendation_index = header
         .find("page-header__recommendation")
-        .expect("primary recommendation");
+        .expect("header recommendation");
+    let title_index = header.find("<h1>A review title</h1>").expect("title");
     let metadata_index = header.find("<aside class=\"meta\"").expect("metadata");
 
-    assert!(title_index < recommendation_index);
-    assert!(recommendation_index < metadata_index);
-    assert!(header.contains("Comment only"));
+    assert!(recommendation_index < title_index);
+    assert!(title_index < metadata_index);
+    assert!(header.contains("data-decision=\"Comment only\""));
+
+    let recommendation = html
+        .split_once("<section id=\"recommendation\">")
+        .expect("recommendation section")
+        .1;
+    assert!(recommendation.contains("class=\"callout recommendation-tone\""));
+    assert!(recommendation.contains("data-decision=\"Comment only\""));
 }
 
 #[test]
