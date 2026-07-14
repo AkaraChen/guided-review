@@ -1,7 +1,9 @@
 <claim-card>
-  <h3><span class="index">{{inc index}}.</span>{{title}}<span class="ref"><status-badge{{#if warn}} warn{{/if}}>{{badge}}</status-badge><status-badge>{{claim.basis}}</status-badge></span></h3>
+  <h3><span class="index">{{inc index}}.</span>{{title}}{{#if badge}}<span class="ref"><status-badge{{#if warn}} warn{{/if}}>{{badge}}</status-badge>{{#if basis}}<status-badge>{{basis}}</status-badge>{{/if}}</span>{{/if}}</h3>
   {{#if summary}}
   <p>{{summary}}</p>
   {{/if}}
+  {{#if show_evidence}}
   {{> evidence claim}}
+  {{/if}}
 </claim-card>
