@@ -63,10 +63,19 @@ npx skills add akarachen/guided-review
 ## 快速开始
 
 ```bash
+egr claude --pr owner/repo#123      # 用 PR 评审 prompt 启动 Claude Code
+egr cc --staged                     # `cc` 是 `claude` 的可见别名
+egr codex --branch main             # 用 Codex 评审当前分支
+egr codex --worktree --print        # 只检查 prompt，不启动 Agent
 egr generate -h                   # 打印评审 JSON Schema
 egr generate owner/repo#123 --review review.json --output out/index.html
 egr serve out                     # 绑定 127.0.0.1 并打印 URL
 ```
+
+Agent 子命令还支持 `--commits RANGE`、`--paths PATH...`，并可在 `--` 后透传
+Agent 原生参数。未显式指定范围时，`egr` 会先选择有领先提交的分支，再选择有
+改动的工作区。`--headless` 分别调用 `claude -p` 或 `codex exec`，`--dry-run`
+可检查最终进程参数。
 
 完整 payload 见 [`examples/review.json`](examples/review.json)，Agent 工作流
 见 [`skill/SKILL.md`](skill/SKILL.md)。

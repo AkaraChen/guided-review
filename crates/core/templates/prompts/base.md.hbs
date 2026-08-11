@@ -1,0 +1,13 @@
+{{invocation}} to review the selected {{scope_name}} scope.
+
+{{> scope}}
+
+Evidence rules:
+- Back every factual claim with exact code evidence. Mark inference as synthesis.
+- Read enough surrounding code and tests to check behavior, failure paths, and rollback risk.
+- Create all review-related files in a fresh system temporary directory. Never write them inside the repository under review, and remove them when finished.
+{{#if render_target}}
+- Produce the review payload, then run `egr generate {{render_target}} --review <payload> --output <output>` and report the artifact path.
+{{else}}
+- Report the review directly in this conversation. Do not produce an HTML artifact.
+{{/if}}

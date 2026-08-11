@@ -68,10 +68,19 @@ npx skills add akarachen/guided-review
 ## Quick Start
 
 ```bash
+egr claude --pr owner/repo#123      # launch Claude Code with a PR review prompt
+egr cc --staged                     # `cc` is the visible alias for `claude`
+egr codex --branch main             # review the current branch with Codex
+egr codex --worktree --print        # inspect the prompt without launching an agent
 egr generate -h                   # prints the review JSON Schema
 egr generate owner/repo#123 --review review.json --output out/index.html
 egr serve out                     # serves on 127.0.0.1, prints the URL
 ```
+
+Agent commands also accept `--commits RANGE`, `--paths PATH...`, and forwarded
+native arguments after `--`. With no explicit scope, `egr` selects an ahead
+branch first, then a changed worktree. Use `--headless` for `claude -p` or
+`codex exec`, and `--dry-run` to inspect the final process arguments.
 
 See [`examples/review.json`](examples/review.json) for a complete payload and
 [`skill/SKILL.md`](skill/SKILL.md) for the agent workflow.

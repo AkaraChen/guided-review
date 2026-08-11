@@ -1,3 +1,4 @@
+mod agent;
 mod cli;
 mod serve;
 
@@ -9,19 +10,25 @@ use std::{
 
 use anyhow::{Context, Result};
 
-pub use cli::{Cli, Command, GenerateArgs, ServeArgs};
+pub use cli::{AgentArgs, Cli, Command, GenerateArgs, ServeArgs};
 pub use guided_review_core::{
-    GuidedReview, PullRequestRef, RenderReviewError, ReviewInputError, parse_review, render_review,
+    AgentKind, GuidedReview, PullRequestRef, RenderReviewError, ReviewInputError, parse_review,
+    render_review,
 };
 
-pub fn execute(cli: Cli) -> Result<()> {
+pub fn execute(cli: Cli) -> Result<std::process::ExitCode> {
     match cli.command {
+        Command::Claude(args) => agent::run(args, AgentKind::Claude),
+        Command::Codex(args) => agent::run(args, AgentKind::Codex),
         Command::Generate(args) => {
             let output = generate(args)?;
             println!("{}", output.display());
-            Ok(())
+            Ok(std::process::ExitCode::SUCCESS)
         }
-        Command::Serve(args) => serve::serve(&args.dir, args.port),
+        Command::Serve(args) => {
+            serve::serve(&args.dir, args.port)?;
+            Ok(std::process::ExitCode::SUCCESS)
+        }
     }
 }
 
