@@ -2,6 +2,6 @@ use anyhow::Result;
 use clap::Parser;
 use guided_review::{Cli, execute};
 
-fn main() -> Result<()> {
+fn main() -> Result<std::process::ExitCode> {
     execute(Cli::parse())
 }

@@ -6,9 +6,11 @@ This is a Rust 2024 Cargo workspace with two crates under `crates/`.
 `crates/core` (package `guided-review-core`) owns the domain: GitHub PR
 reference parsing in `src/pull_request.rs`, review JSON types, validation, and
 the generated schema help in `src/review.rs`, and Handlebars setup in
-`src/render.rs`. `crates/cli` (package `guided-review`, the binary) keeps
-command parsing in `src/cli.rs`, coordinates input, rendering, and output in
-`src/lib.rs`, and has the thin process entry point in `src/main.rs`. Templates
+`src/render.rs`; pure scope-specific agent prompt rendering lives in
+`src/agent_prompt.rs`. `crates/cli` (package `guided-review`, the binary) keeps
+command parsing in `src/cli.rs`, agent scope detection and process spawning in
+`src/agent.rs`, coordinates input, rendering, and output in `src/lib.rs`, and
+has the thin process entry point in `src/main.rs`. Templates
 live in `crates/core/templates/`: page markup in `.hbs` files and
 web components in sibling `.js` files. Repeated components (status-badge,
 file-link, claim-card, code-card) pair a slim SSR partial with a `.js` custom
