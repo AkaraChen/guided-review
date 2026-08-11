@@ -2,6 +2,8 @@ use handlebars::Handlebars;
 use serde::Serialize;
 use thiserror::Error;
 
+use crate::PullRequestRef;
+
 const BASE_TEMPLATE: &str = include_str!("../templates/prompts/base.md.hbs");
 const PR_TEMPLATE: &str = include_str!("../templates/prompts/pr.md.hbs");
 const BRANCH_TEMPLATE: &str = include_str!("../templates/prompts/branch.md.hbs");
@@ -28,7 +30,7 @@ impl AgentKind {
 
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub enum ReviewScope {
-    PullRequest { reference: String },
+    PullRequest { reference: PullRequestRef },
     Branch { base: String },
     Commits { range: String },
     Staged,
@@ -60,18 +62,27 @@ impl ReviewScope {
     }
 
     fn context(&self, agent: AgentKind, render_target: Option<&str>) -> PromptContext {
-        let (reference, base, range, paths) = match self {
-            Self::PullRequest { reference } => (Some(reference.clone()), None, None, vec![]),
-            Self::Branch { base } => (None, Some(base.clone()), None, vec![]),
-            Self::Commits { range } => (None, None, Some(range.clone()), vec![]),
-            Self::Paths { paths } => (None, None, None, paths.clone()),
-            Self::Staged | Self::Worktree => (None, None, None, vec![]),
+        let (reference, repository, number, base, range, paths) = match self {
+            Self::PullRequest { reference } => (
+                Some(reference.to_string()),
+                Some(format!("{}/{}", reference.owner, reference.repository)),
+                Some(reference.number),
+                None,
+                None,
+                vec![],
+            ),
+            Self::Branch { base } => (None, None, None, Some(base.clone()), None, vec![]),
+            Self::Commits { range } => (None, None, None, None, Some(range.clone()), vec![]),
+            Self::Paths { paths } => (None, None, None, None, None, paths.clone()),
+            Self::Staged | Self::Worktree => (None, None, None, None, None, vec![]),
         };
 
         PromptContext {
             invocation: agent.invocation(),
             scope_name: self.name(),
             reference,
+            repository,
+            number,
             base,
             range,
             paths,
@@ -85,6 +96,8 @@ struct PromptContext {
     invocation: &'static str,
     scope_name: &'static str,
     reference: Option<String>,
+    repository: Option<String>,
+    number: Option<u64>,
     base: Option<String>,
     range: Option<String>,
     paths: Vec<String>,
@@ -96,10 +109,10 @@ pub fn render_agent_prompt(
     scope: &ReviewScope,
 ) -> Result<String, RenderAgentPromptError> {
     let render_target = match scope {
-        ReviewScope::PullRequest { reference } => Some(reference.as_str()),
+        ReviewScope::PullRequest { reference } => Some(reference.to_string()),
         _ => None,
     };
-    render_agent_prompt_with_target(agent, scope, render_target)
+    render_agent_prompt_with_target(agent, scope, render_target.as_deref())
 }
 
 pub fn render_agent_prompt_with_target(
@@ -125,12 +138,15 @@ pub enum RenderAgentPromptError {
 
 #[cfg(test)]
 mod tests {
+    use std::str::FromStr;
+
     use super::{AgentKind, ReviewScope, render_agent_prompt};
+    use crate::PullRequestRef;
 
     fn scopes() -> Vec<ReviewScope> {
         vec![
             ReviewScope::PullRequest {
-                reference: "owner/repo#42".into(),
+                reference: PullRequestRef::from_str("owner/repo#42").unwrap(),
             },
             ReviewScope::Branch {
                 base: "origin/main".into(),
@@ -155,11 +171,38 @@ mod tests {
 
         for prompt in &prompts {
             assert!(prompt.contains("Evidence rules"));
-            assert!(prompt.contains("repository-local temporary directory"));
+            assert!(prompt.contains("fresh system temporary directory"));
         }
         for (index, prompt) in prompts.iter().enumerate() {
             assert!(!prompts[index + 1..].contains(prompt));
         }
+    }
+
+    #[test]
+    fn pull_request_uses_valid_gh_locator_arguments() {
+        let prompt = render_agent_prompt(
+            AgentKind::Codex,
+            &ReviewScope::PullRequest {
+                reference: PullRequestRef::from_str("AkaraChen/guided-review#3").unwrap(),
+            },
+        )
+        .unwrap();
+
+        assert!(
+            prompt.contains("gh pr view 3 --repo AkaraChen/guided-review --json title,body,files")
+        );
+        assert!(prompt.contains("gh pr diff 3 --repo AkaraChen/guided-review"));
+        assert!(!prompt.contains("gh pr view AkaraChen/guided-review#3"));
+        assert!(!prompt.contains("gh pr diff AkaraChen/guided-review#3"));
+    }
+
+    #[test]
+    fn shared_rules_keep_temporary_files_outside_the_reviewed_repository() {
+        let prompt = render_agent_prompt(AgentKind::Codex, &ReviewScope::Staged).unwrap();
+
+        assert!(prompt.contains("fresh system temporary directory"));
+        assert!(prompt.contains("Never write them inside the repository under review"));
+        assert!(!prompt.contains("repository-local temporary directory"));
     }
 
     #[test]

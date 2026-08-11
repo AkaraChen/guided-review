@@ -90,7 +90,7 @@ fn resolve_scope(args: &AgentArgs) -> Result<ResolvedScope> {
         return Ok(ResolvedScope {
             summary: format!("pr ({reference})"),
             scope: ReviewScope::PullRequest {
-                reference: reference.to_string(),
+                reference: reference.clone(),
             },
         });
     }
