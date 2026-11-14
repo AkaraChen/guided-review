@@ -10,10 +10,10 @@
     claim-card {
       display: block;
       min-width: 0;
-      /* Divider bleeds through the section's 28px padding to the card edges */
-      border-top: 1px solid var(--line-strong);
-      margin: 0 -28px;
-      padding: 18px 28px 0;
+      /* Divider bleeds through the section's padding to the card edges */
+      border-top: 1px solid var(--line);
+      margin: 0 calc(-1 * var(--section-pad, 28px));
+      padding: 20px var(--section-pad, 28px) 0;
     }
 
     claim-card:first-child {
@@ -38,7 +38,7 @@
     }
 
     claim-card > p:not(.ref) {
-      margin-top: 12px;
+      margin-top: 10px;
       color: var(--muted);
     }
   `;

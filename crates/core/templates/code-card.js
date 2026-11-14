@@ -9,6 +9,9 @@
     /* Document-level on purpose: for slotted elements the page's own rules
        (like the global h3 sizing) beat ::slotted rules from the shadow tree. */
     code-card h3 {
+      /* Grows beside the file link; wraps the link to its own row when the
+         card is too narrow for both. */
+      flex: 1 1 16ch;
       min-width: 0;
       margin: 0;
       color: var(--code-ink);
@@ -20,22 +23,32 @@
     code-card pre {
       margin: 0;
       overflow-x: auto;
-      padding: 12px 0;
-      font: 12px/1.6 var(--font-mono);
+      padding: 10px 0;
+      font: 12.5px/1.65 var(--font-mono);
+      /* Excerpts keep their tabs; 8-column tabs push code off narrow cards */
+      tab-size: 4;
     }
 
     code-card .code-line {
       display: grid;
       grid-template-columns: 46px minmax(max-content, 1fr);
-      gap: 12px;
+      gap: 14px;
       padding: 0 14px;
     }
 
+    code-card .code-line:hover {
+      background: rgba(240, 240, 238, 0.05);
+    }
+
     code-card .ln {
-      color: rgba(240, 240, 238, 0.4);
+      color: rgba(240, 240, 238, 0.48);
       font-variant-numeric: tabular-nums;
       text-align: right;
       user-select: none;
+    }
+
+    code-card .code-line:hover .ln {
+      color: rgba(240, 240, 238, 0.8);
     }
 
     code-card .src {
@@ -68,11 +81,13 @@
 
           header {
             display: flex;
+            flex-wrap: wrap;
             align-items: center;
             justify-content: space-between;
-            gap: 16px;
+            gap: 6px 16px;
             border-bottom: 1px solid rgba(240, 240, 238, 0.12);
-            padding: 12px 14px;
+            background: rgba(240, 240, 238, 0.03);
+            padding: 11px 14px;
           }
 
           /* Slotted title and link participate in the header flexbox directly,
@@ -84,7 +99,7 @@
           ::slotted(span[slot="link"]) {
             display: inline-flex;
             align-items: center;
-            max-width: 65%;
+            max-width: 100%;
             --file-link-color: #8ec6ff;
             --file-link-size: 12px;
           }

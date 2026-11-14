@@ -25,7 +25,6 @@
     padding: 0;
     color: var(--muted);
     cursor: pointer;
-    transition: color 150ms var(--ease), background-color 150ms var(--ease);
   }
 
   .theme-switch button svg {
@@ -34,17 +33,30 @@
   }
 
   .theme-switch button:hover {
+    background: color-mix(in srgb, var(--muted-fill) 60%, transparent);
     color: var(--ink);
   }
 
   .theme-switch button:focus-visible {
-    outline: 2px solid var(--primary);
+    outline: var(--focus-ring);
     outline-offset: 1px;
   }
 
   .theme-switch button[aria-pressed="true"] {
     background: var(--muted-fill);
-    color: var(--ink);
+    color: var(--ink-strong);
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .theme-switch button {
+      transition: color 150ms var(--ease), background-color 150ms var(--ease),
+        box-shadow 150ms var(--ease), transform 100ms var(--ease);
+    }
+
+    .theme-switch button:active {
+      transform: scale(0.92);
+    }
   }
 </style>
 <div class="theme-switch" role="group" aria-label="Color theme">
