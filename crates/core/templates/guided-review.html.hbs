@@ -39,10 +39,18 @@
         --shadow-panel: 0 18px 48px -24px rgba(35, 31, 32, 0.18);
         --shadow-window: 0 0 48px -16px rgba(35, 31, 32, 0.18);
         --ease: cubic-bezier(0.4, 0, 0.2, 1);
-        --font-sans: "DM Sans", Inter, ui-sans-serif, system-ui, -apple-system,
-          BlinkMacSystemFont, "Segoe UI", sans-serif;
-        --font-mono: "JetBrains Mono", "SFMono-Regular", "SF Mono", Menlo, Consolas,
-          "Liberation Mono", monospace;
+        --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+        --focus-ring: 2px solid var(--primary);
+        /* Section card inset; headings and claim dividers bleed through it */
+        --section-pad: 28px;
+        /* System stacks only: the page is a single offline file, so it never
+           names a web font that nothing would load. */
+        --font-sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI Variable Text", "Segoe UI", Roboto, "Helvetica Neue", "Noto Sans",
+          "Liberation Sans", Arial, sans-serif;
+        --font-mono: ui-monospace, "SF Mono", SFMono-Regular, "Cascadia Code",
+          "Cascadia Mono", Menlo, Consolas, "Roboto Mono", "Noto Sans Mono",
+          "Liberation Mono", "DejaVu Sans Mono", monospace;
       }
 
       /* Dark palette. Keep the two blocks below identical: one covers the explicit
@@ -54,7 +62,7 @@
         --card: #211f1d;
         --ink: #e6e4df;
         --ink-strong: #f2f1ee;
-        --muted: #a3a3ab;
+        --muted: #b0ada6;
         --muted-fill: #2e2c28;
         --line: #34322e;
         --line-strong: #4a4741;
@@ -88,7 +96,7 @@
           --card: #211f1d;
           --ink: #e6e4df;
           --ink-strong: #f2f1ee;
-          --muted: #a3a3ab;
+          --muted: #b0ada6;
           --muted-fill: #2e2c28;
           --line: #34322e;
           --line-strong: #4a4741;
@@ -128,8 +136,11 @@
         background-image: radial-gradient(var(--dot) 1px, transparent 1px);
         background-size: 24px 24px;
         color: var(--ink);
-        font: 16px/1.55 var(--font-sans);
+        font: 16px/1.6 var(--font-sans);
+        font-kerning: normal;
+        text-rendering: optimizeLegibility;
         -webkit-font-smoothing: antialiased;
+        -moz-osx-font-smoothing: grayscale;
       }
 
       ::selection {
@@ -140,6 +151,11 @@
         color: var(--primary-strong);
         text-decoration-thickness: 1px;
         text-underline-offset: 3px;
+      }
+
+      :focus-visible {
+        outline: var(--focus-ring);
+        outline-offset: 2px;
       }
 
       .hamburger,
@@ -180,18 +196,18 @@
       }
 
       .back-to-top:hover {
+        border-color: var(--line-strong);
         box-shadow: var(--shadow-panel);
-      }
-
-      .back-to-top:focus-visible {
-        outline: 2px solid var(--primary);
-        outline-offset: 2px;
       }
 
       body.header-collapsed .back-to-top {
         opacity: 1;
         transform: translateY(0);
         visibility: visible;
+      }
+
+      body.header-collapsed .back-to-top:hover {
+        transform: translateY(-2px);
       }
 
       h1,
@@ -210,7 +226,7 @@
       h2 {
         margin: 0 0 16px;
         font-size: 20px;
-        font-weight: 400;
+        font-weight: 500;
       }
 
       /* Section titles pin flush under the fixed title bar while their card
@@ -223,8 +239,8 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        margin: -28px -28px 0;
-        padding: 16px 28px;
+        margin: calc(-1 * var(--section-pad)) calc(-1 * var(--section-pad)) 0;
+        padding: 16px var(--section-pad);
         container-type: scroll-state;
       }
 
@@ -237,7 +253,6 @@
         z-index: -1;
         border-radius: 16px 16px 0 0;
         background: var(--card);
-        transition: border-radius 150ms var(--ease);
       }
 
       @container scroll-state(stuck: top) {
@@ -258,7 +273,6 @@
         background: var(--line);
         box-shadow: 0 2px 6px -2px rgba(15, 23, 42, 0.12);
         opacity: 0;
-        transition: opacity 150ms var(--ease);
       }
 
       @container scroll-state(stuck: top) {
@@ -278,6 +292,7 @@
         margin: 0 0 8px;
         font-size: 17px;
         font-weight: 500;
+        line-height: 1.3;
         letter-spacing: -0.01em;
       }
 
@@ -332,27 +347,27 @@
         font-size: 14px;
         font-weight: 500;
         text-decoration: none;
-        transition: color 150ms var(--ease), background-color 150ms var(--ease);
+      }
+
+      nav a + a {
+        margin-top: 2px;
       }
 
       nav a:hover {
         color: var(--ink);
-        background: var(--muted-fill);
+        background: color-mix(in srgb, var(--muted-fill) 60%, transparent);
       }
 
+      /* The current section reads as a raised chip, distinct from hover */
       nav a.active {
-        color: var(--ink);
+        color: var(--ink-strong);
         background: var(--muted-fill);
-      }
-
-      nav a:focus-visible {
-        outline: 2px solid var(--primary);
-        outline-offset: 2px;
+        box-shadow: inset 0 0 0 1px var(--line);
       }
 
       .content {
         display: grid;
-        gap: 22px;
+        gap: 24px;
         min-width: 0;
       }
 
@@ -362,7 +377,7 @@
         border: 1px solid var(--line);
         border-radius: 16px;
         background: var(--card);
-        padding: 28px;
+        padding: var(--section-pad);
         box-shadow: var(--shadow-hairline);
       }
 
@@ -411,10 +426,14 @@
         margin-top: 8px;
       }
 
+      li::marker {
+        color: var(--line-strong);
+      }
+
       .reading-list {
         counter-reset: step;
         display: grid;
-        gap: 14px;
+        gap: 18px;
         margin-top: 16px;
       }
 
@@ -448,6 +467,10 @@
         min-width: 0;
       }
 
+      .reading-item p {
+        color: var(--muted);
+      }
+
       code {
         border-radius: 6px;
         background: var(--muted-fill);
@@ -474,10 +497,52 @@
         font-size: 14px;
       }
 
+      /* Every transition and animation on the page lives behind this query,
+         so "reduce motion" gets instant state changes and instant scrolling. */
       @media (prefers-reduced-motion: no-preference) {
+        html {
+          scroll-behavior: smooth;
+        }
+
         .back-to-top {
-          transition: opacity 250ms var(--ease), transform 250ms var(--ease),
-            visibility 250ms var(--ease), box-shadow 150ms var(--ease);
+          transition: opacity 250ms var(--ease), transform 250ms var(--ease-out),
+            visibility 250ms var(--ease), box-shadow 150ms var(--ease),
+            border-color 150ms var(--ease);
+        }
+
+        nav a {
+          transition: color 150ms var(--ease), background-color 150ms var(--ease),
+            box-shadow 150ms var(--ease);
+        }
+
+        section > h2::before {
+          transition: border-radius 150ms var(--ease);
+        }
+
+        section > h2::after {
+          transition: opacity 150ms var(--ease);
+        }
+
+        .hamburger {
+          transition: transform 150ms var(--ease), box-shadow 150ms var(--ease);
+        }
+
+        .hamburger span {
+          transition: transform 200ms var(--ease-out), opacity 150ms var(--ease);
+        }
+
+        nav {
+          transition: transform 240ms var(--ease-out), visibility 240ms;
+        }
+
+        .drawer-scrim {
+          animation: fade-in 200ms var(--ease);
+        }
+
+        @keyframes fade-in {
+          from {
+            opacity: 0;
+          }
         }
 
         section {
@@ -487,6 +552,7 @@
         section:nth-child(2) { animation-delay: 60ms; }
         section:nth-child(3) { animation-delay: 120ms; }
         section:nth-child(4) { animation-delay: 180ms; }
+        section:nth-child(n + 5) { animation-delay: 240ms; }
 
         @keyframes reveal-in {
           from {
@@ -501,44 +567,69 @@
       }
 
       @media (max-width: 860px) {
-        main {
-          grid-template-columns: 1fr;
+        :root {
+          --section-pad: 20px;
         }
 
+        .page {
+          padding: 12px 16px 64px;
+        }
+
+        main {
+          grid-template-columns: 1fr;
+          margin-top: 20px;
+        }
+
+        /* Sits in the top toolbar row, vertically centered in the 48px title
+           bar like the theme switch, so it never covers a card. */
         .hamburger {
           position: fixed;
-          top: 16px;
+          top: 4px;
           left: 16px;
           z-index: 35;
           display: inline-flex;
-          width: 44px;
-          height: 44px;
+          width: 40px;
+          height: 40px;
           flex-direction: column;
           justify-content: center;
-          gap: 5px;
+          gap: 4px;
           border: 1px solid var(--line);
           border-radius: 999px;
           background: var(--card);
-          box-shadow: var(--shadow-panel);
+          padding: 0;
+          box-shadow: var(--shadow-toolbar);
           cursor: pointer;
-          transition: transform 150ms var(--ease), box-shadow 150ms var(--ease);
         }
 
         .hamburger:hover {
-          transform: translateY(-2px);
+          border-color: var(--line-strong);
+          box-shadow: var(--shadow-panel);
         }
 
         .hamburger:active {
-          transform: scale(0.98);
+          transform: scale(0.96);
         }
 
         .hamburger span {
           display: block;
-          width: 18px;
+          width: 16px;
           height: 2px;
           margin: 0 auto;
           border-radius: 999px;
           background: var(--ink);
+        }
+
+        /* Open: the three bars fold into a close mark */
+        body.drawer-open .hamburger span:nth-child(1) {
+          transform: translateY(6px) rotate(45deg);
+        }
+
+        body.drawer-open .hamburger span:nth-child(2) {
+          opacity: 0;
+        }
+
+        body.drawer-open .hamburger span:nth-child(3) {
+          transform: translateY(-6px) rotate(-45deg);
         }
 
         .drawer-scrim {
@@ -564,12 +655,14 @@
           bottom: 0;
           left: 0;
           z-index: 30;
+          /* Undo the desktop align-self: start, which a fixed box honors too
+             and which would shrink the drawer to its links' height. */
+          align-self: stretch;
           width: min(82vw, 320px);
           border-right: 1px solid var(--line);
           background: var(--card);
-          padding: 84px 22px 22px;
+          padding: 72px 16px 22px;
           transform: translateX(-105%);
-          transition: transform 200ms var(--ease);
           visibility: hidden;
           box-shadow: var(--shadow-window);
         }

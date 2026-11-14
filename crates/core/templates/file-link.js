@@ -46,13 +46,26 @@
             font-family: var(--font-mono);
             font-size: var(--file-link-size, 13px);
             font-weight: 500;
-            text-decoration: none;
+            text-decoration: underline;
+            text-decoration-color: transparent;
+            text-decoration-thickness: 1px;
+            text-underline-offset: 3px;
+            border-radius: 4px;
           }
 
           a:hover {
-            text-decoration: underline;
-            text-decoration-thickness: 1px;
-            text-underline-offset: 3px;
+            text-decoration-color: currentColor;
+          }
+
+          a:focus-visible {
+            outline: var(--focus-ring, 2px solid var(--primary));
+            outline-offset: 2px;
+          }
+
+          @media (prefers-reduced-motion: no-preference) {
+            a {
+              transition: text-decoration-color 150ms var(--ease);
+            }
           }
 
           svg {
