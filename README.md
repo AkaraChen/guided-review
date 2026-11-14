@@ -7,7 +7,7 @@
 [![CI](https://github.com/AkaraChen/guided-review/actions/workflows/ci.yml/badge.svg)](https://github.com/AkaraChen/guided-review/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-2024_edition-b7410e?logo=rust&logoColor=white)](https://www.rust-lang.org)
-[![Agent skill](https://img.shields.io/badge/agent_skill-included-2ea44f)](skill/SKILL.md)
+[![Agent skill](https://img.shields.io/badge/agent_skill-included-2ea44f)](skills/guided-review/SKILL.md)
 
 English &nbsp;·&nbsp; [中文](./README.CN.md)
 
@@ -65,6 +65,10 @@ codex plugin add guided-review@guided-review
 npx skills add akarachen/guided-review
 ```
 
+The repository root is also an [Agent Plugins 1.0](https://github.com/agentplugins/agent-plugins-spec/blob/main/spec/1.0.0.md)
+package: `plugin.json` at the root plus the skill under `skills/guided-review/`.
+Any Agent Plugins-compatible client can install it from the repository directly.
+
 ## Quick Start
 
 ```bash
@@ -83,7 +87,7 @@ branch first, then a changed worktree. Use `--headless` for `claude -p` or
 `codex exec`, and `--dry-run` to inspect the final process arguments.
 
 See [`examples/review.json`](examples/review.json) for a complete payload and
-[`skill/SKILL.md`](skill/SKILL.md) for the agent workflow.
+[`skills/guided-review/SKILL.md`](skills/guided-review/SKILL.md) for the agent workflow.
 
 ## The Philosophy
 
@@ -126,7 +130,7 @@ read directly from the code and which were concluded from it.
 
 - A JSON contract, printed as a schema from `egr generate -h`, that any
   coding agent can fill.
-- A ready-made agent skill in [`skill/`](skill/SKILL.md) that drives the whole
+- A ready-made agent skill in [`skills/guided-review/`](skills/guided-review/SKILL.md) that drives the whole
   workflow: inspect the diff, write the payload, render, and serve.
 - `egr serve` previews the result locally and shuts itself down when you
   close the tab.
