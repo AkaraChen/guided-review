@@ -12,5 +12,5 @@
   "repository": "https://github.com/AkaraChen/guided-review",
   "license": "MIT",
   "keywords": ["code-review", "pull-request", "guided-review"],
-  "skills": "./skill/"
+  "skills": "./skills/"
 }

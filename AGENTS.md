@@ -17,9 +17,12 @@ file-link, claim-card, code-card) pair a slim SSR partial with a `.js` custom
 element that owns its styles and guards `customElements.define`; single-use
 components (theme-switch, page-header) are one `.hbs` file with inline
 `<style>`/`<script>`. `examples/review.json` is the fixed development payload.
-Integration tests belong in `crates/cli/tests/`. `skill/` packages the
-repository's guided-review agent skill (`SKILL.md` plus `references/`), which
-drives the `egr` binary. Generated files and build artifacts stay under
+Integration tests belong in `crates/cli/tests/`. `skills/guided-review/`
+packages the repository's guided-review agent skill (`SKILL.md` plus
+`references/`), which drives the `egr` binary. The root `plugin.json` makes the
+repository an Agent Plugins 1.0 package (skills are discovered only at
+`skills/<name>/SKILL.md`); `.claude-plugin/` and `.codex-plugin/` keep the
+vendor manifests. Generated files and build artifacts stay under
 `target/`.
 
 ## Build, Test, and Development Commands

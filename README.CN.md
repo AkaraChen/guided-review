@@ -7,7 +7,7 @@
 [![CI](https://github.com/AkaraChen/guided-review/actions/workflows/ci.yml/badge.svg)](https://github.com/AkaraChen/guided-review/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Rust](https://img.shields.io/badge/Rust-2024_edition-b7410e?logo=rust&logoColor=white)](https://www.rust-lang.org)
-[![Agent skill](https://img.shields.io/badge/agent_skill-included-2ea44f)](skill/SKILL.md)
+[![Agent skill](https://img.shields.io/badge/agent_skill-included-2ea44f)](skills/guided-review/SKILL.md)
 
 [English](./README.md) &nbsp;·&nbsp; 中文
 
@@ -60,6 +60,10 @@ codex plugin add guided-review@guided-review
 npx skills add akarachen/guided-review
 ```
 
+仓库根目录同时是一个 [Agent Plugins 1.0](https://github.com/agentplugins/agent-plugins-spec/blob/main/spec/1.0.0.md)
+插件包：根目录的 `plugin.json` 加上 `skills/guided-review/` 下的技能。
+任何兼容 Agent Plugins 的客户端都可以直接从仓库安装。
+
 ## 快速开始
 
 ```bash
@@ -78,7 +82,7 @@ Agent 原生参数。未显式指定范围时，`egr` 会先选择有领先提�
 可检查最终进程参数。
 
 完整 payload 见 [`examples/review.json`](examples/review.json)，Agent 工作流
-见 [`skill/SKILL.md`](skill/SKILL.md)。
+见 [`skills/guided-review/SKILL.md`](skills/guided-review/SKILL.md)。
 
 ## 设计哲学
 
@@ -116,7 +120,7 @@ AI 起草地图，人类掌握合并决定。每个论断都标注为 *observed*
 **让你的 Agent 干粗活**
 
 - `egr generate -h` 会打印出 JSON Schema，任何编码 Agent 都能照着填。
-- [`skill/`](skill/SKILL.md) 内置一套现成的 Agent 技能，驱动完整流程：
+- [`skills/guided-review/`](skills/guided-review/SKILL.md) 内置一套现成的 Agent 技能，驱动完整流程：
   检查 diff、写 payload、渲染、本地预览。
 - `egr serve` 在本地预览结果，关掉浏览器标签页后会自动优雅退出。
 
