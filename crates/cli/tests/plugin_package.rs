@@ -95,3 +95,19 @@ fn vendor_manifests_point_at_existing_skill_paths() {
         assert!(repo_root().join(skills).is_dir(), "{manifest}: {skills}");
     }
 }
+
+#[test]
+fn plugin_manifest_versions_match_workspace_version() {
+    for manifest in [
+        "plugin.json",
+        ".claude-plugin/plugin.json",
+        ".codex-plugin/plugin.json",
+    ] {
+        let value = read_json(&repo_root().join(manifest));
+        assert_eq!(
+            value["version"].as_str(),
+            Some(env!("CARGO_PKG_VERSION")),
+            "{manifest} version drifted from the workspace Cargo.toml"
+        );
+    }
+}
